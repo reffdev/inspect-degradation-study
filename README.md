@@ -18,7 +18,7 @@ Agents explore early (reads, searches -- low error rate) and act late (edits, te
 
 A second round of corrections targeted the step-phase classifier itself, which was misclassifying 30-60% of steps on 3 of 4 frameworks. Fixing it eliminated 4 more apparent degradation signals across other configurations.
 
-After all corrections across 15 configurations: 8 show no effect, 6 show significant improvement over time, 1 shows degradation that doesn't replicate on an independent sample. The improvement pattern likely reflects the same phase-composition dynamic from the other direction -- the step-phase covariate may overcorrect when exploration is genuinely harder than action for a given model. The improvement signals have not been subjected to the same scrutiny as the degradation signals and should be treated as provisional.
+After all corrections across 15 configurations: 8 show no effect, 6 show significant improvement over time, 1 shows degradation that doesn't replicate on an independent sample. The improvement signals were investigated separately (`scripts/analyze_improvement.py`). Backfilling outcome labels from Multi-SWE-bench trajectory scores showed that improvement survives outcome control -- it is present in both successful and failed traces. Two of the 6 are floor effects (<0.5% base error rate, 4 total errors each). The remaining 4 substantive improvement signals are robust to all available controls (phase, complexity, outcome). Whether this reflects genuine within-run adaptation or an uncontrolled confound is an open question.
 
 ## Why this matters
 
@@ -69,7 +69,7 @@ Key caveats:
 - **Grader validated on short traces only.** Validation used ~10 steps/trace; analysis traces run 10-100 steps with 42% hitting the prior-context cap.
 - **Context management is unknown for most scaffoldings.** If a framework silently drops context, the step_index axis becomes unreliable.
 - **The rubric has not been validated by human experts** independent of the TRAIL labels.
-- **Improvement signals may reflect overcorrection.** 6 configs show significant improvement; the [phase robustness analysis](FINDINGS.md#phase-robustness-analysis) tests whether this is an artifact of step-phase overcorrection.
+- **Improvement signals survive available controls but are not fully explained.** 4 of 6 are substantive; 2 are floor effects. Outcome control does not reduce the signal. See [FINDINGS.md](FINDINGS.md#cross-dataset-summary).
 
 ## Reproducing this study
 

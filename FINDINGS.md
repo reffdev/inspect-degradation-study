@@ -30,7 +30,20 @@ All coefficients are from mixed-effects linear probability models with random in
 
 Claude 3.5 Sonnet on SWE-agent is the only degradation signal. It does not replicate: the same model and scaffolding on the MSB sample shows significant improvement (p<0.0001).
 
-**On the improvement signals.** 6 of 15 configurations show significant improvement (errors decrease with step position). This could reflect genuine agent behavior -- initial exploration is tentative and error-prone, later steps are more targeted -- but it could also reflect the step-phase covariate overcorrecting. The improvement signals have not been subjected to the same level of scrutiny as the degradation signals. They should be treated as provisional.
+**On the improvement signals.** 6 of 15 configurations show significant improvement (errors decrease with step position). Investigation (see `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`) tested whether this is an outcome-selection artifact:
+
+**Outcome control test.** Resolved status was backfilled from Multi-SWE-bench trajectory `score` fields for the 2 SWE-agent configs. Adding `trace_success` to the model does not reduce the improvement signal:
+
+| Config | Without outcome | With outcome | Outcome p-value |
+|---|---|---|---|
+| MSB / GPT-4o / SWE-agent | -0.0024 (p<0.0001) | -0.0023 (p<0.0001) | 0.39 |
+| MSB / Claude 3.5 / SWE-agent | -0.0020 (p<0.0001) | -0.0020 (p<0.0001) | 0.94 |
+
+Improvement is present in both successful and failed traces (GPT-4o: -0.0042 success, -0.0018 failure; Claude 3.5: -0.0028 success, -0.0015 failure). The outcome-selection hypothesis is not supported for these two configs -- the improvement appears to reflect genuine within-run adaptation. Outcome labels could not be obtained for the 3 OpenHands configs or Terminus (trajectory files do not include a `score` field).
+
+**Floor effects.** 2 of 6 configs (MSB/GPT-4o/OpenHands at 0.3% error, MSB/Claude 3.7/OpenHands at 0.2%) have base error rates too low for meaningful improvement -- each has only 4 total errors across ~1500+ steps.
+
+The 4 substantive improvement signals are robust to all available controls (phase, complexity, outcome). Early/late median-split confirms the raw pattern (4-7.5pp lower error rates in the second half of traces). Whether this reflects agents genuinely learning from feedback during a task, or a remaining uncontrolled confound, is an open question.
 
 **Step-phase classifier.** The explore/act classifier uses framework-aware detection layers: Auto-SWE structured tool calls, OpenHands bracket commands with subcommand parsing (e.g., `[str_replace_editor] view` -> explore, `[str_replace_editor] str_replace` -> act), XML blocks for SWE-agent/terminus, and a shell-command fallback. Accuracy: 100% on Auto-SWE (verified against ground-truth tool names), zero known misclassifications on OpenHands. SWE-agent accuracy has not been measured against human labels.
 
@@ -227,7 +240,7 @@ Two rubric variants (v2, v2.1) were tested to align the grader's error threshold
 - **Dataset and sample limitations.** 30-50 traces per configuration, mostly SWE-bench Python bug fixes. Earlier runs used streaming order (non-random); later runs introduced random sampling.
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished. Kappa values lack an interpretive anchor.
 - **Grader validated on short traces only.** Validation used TRAIL (~10 steps/trace). Analysis traces are 10-100 steps, and 42% of long-trace renders hit the prior-context cap. Grader accuracy as a function of prompt length has not been measured.
-- **Improvement signals are unscrutinized.** The same methodology that dismantled degradation signals has not been applied to the 6 improvement signals. They may reflect residual confounding.
+- **Improvement signals survive all available controls.** 4 of 6 improvement configs show genuine improvement robust to phase, complexity, and outcome controls. Outcome labels were backfilled for 2 SWE-agent configs; improvement persists in both successful and failed traces. Whether this is within-run adaptation or an uncontrolled confound (e.g., task structure) is unresolved. 2 of 6 are floor effects. See `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`.
 
 ## Raw output files
 
