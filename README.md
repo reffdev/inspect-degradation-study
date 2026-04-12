@@ -4,7 +4,7 @@ I built a statistical pipeline to answer this question rigorously, tested it acr
 
 ## The result
 
-The pipeline's first run found statistically significant degradation (+0.0063 errors/step, p<0.0001). I spent the rest of the project proving that finding wrong.
+The pipeline's first run found statistically significant degradation (+0.0063 errors/step, p<0.0001). Each additional control eliminated most of the remaining signal:
 
 | What changed | step_index slope | p-value | What it revealed |
 |---|---|---|---|
@@ -12,7 +12,11 @@ The pipeline's first run found statistically significant degradation (+0.0063 er
 | + Mixed-effects controls | +0.0063 | <0.0001 | Task variance, outcome bias |
 | + Step-phase covariate | +0.0006 | 0.68 | Phase-composition artifact |
 
-Agents explore early (reads, searches -- low error rate) and act late (edits, test runs -- high error rate). That phase shift looked like degradation until controlled for (see `figures/confound_dismantling.png`). A second round of corrections targeted the step-phase classifier itself, which was misclassifying 30-60% of steps on 3 of 4 frameworks. Fixing it eliminated 4 more apparent degradation signals across other configurations.
+Agents explore early (reads, searches -- low error rate) and act late (edits, test runs -- high error rate). That phase shift looked like degradation until controlled for:
+
+![Confound dismantling](figures/confound_dismantling.png)
+
+A second round of corrections targeted the step-phase classifier itself, which was misclassifying 30-60% of steps on 3 of 4 frameworks. Fixing it eliminated 4 more apparent degradation signals across other configurations.
 
 After all corrections across 15 configurations: 8 show no effect, 6 show significant improvement over time, 1 shows degradation that doesn't replicate on an independent sample. The improvement pattern likely reflects the same phase-composition dynamic from the other direction -- the step-phase covariate may overcorrect when exploration is genuinely harder than action for a given model. I haven't applied the same level of scrutiny to the improvement signals as to the degradation signals, so they should be treated as provisional.
 
@@ -34,7 +38,7 @@ This study fills that gap: instead of assuming degradation exists and building a
 
 ## Approach
 
-This started as a straightforward measurement project: grade agent steps, fit a regression, report the slope. It became an exercise in proving my own results wrong.
+This started as a straightforward measurement project: grade agent steps, fit a regression, report the slope. Each round of controls revealed a new confound, and the initial result didn't survive any of them.
 
 **Grader validation.** Tested 7 grader configurations against TRAIL's human labels. Found that cheap models match frontier, ensembles don't beat the best single model, and rubric iteration has negative returns. Selected MiniMax ($0.40/M) for the degradation analysis. A side finding: LLM graders naturally calibrate to MEDIUM+ impact errors, ignoring cosmetic LOW-impact issues. This held across all 5 model families tested and is probably relevant to anyone building LLM-as-judge systems.
 

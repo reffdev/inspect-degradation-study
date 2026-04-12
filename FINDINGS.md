@@ -82,6 +82,8 @@ Targeted run to test whether degradation appears under context-window pressure, 
 
 No degradation even on long traces. If degradation exists under context pressure, it's smaller than 0.04pp per step -- negligible over a 100-step trace. Model identity is not significant (70B, 8B, 405B all perform similarly on long traces). Productive rate collapsed to 2.7% -- long traces are agents that are stuck, not making progress.
 
+![Long-trace follow-up](figures/long_trace_followup.png)
+
 ---
 
 ## Observations across configurations
@@ -130,7 +132,9 @@ Configs that showed improvement (MSB/*, Terminus) show improvement *within* both
 
 The one degradation signal (Crossover/Claude 3.5/SWE-agent) shows within-action degradation (+0.0026, p=0.013) but explore steps are marginal (+0.0005, p=0.069). The significant interaction (p=4.4e-06) confirms the phases behave differently for this config.
 
-**Phase-proportion trajectory.** Phase-step correlation ranges from -0.93 (Nebius long) to 0.96 (Nebius). Most configs show strong positive correlation (r > 0.5), confirming the collinearity. See `figures/phase_proportion.png`.
+**Phase-proportion trajectory.** Phase-step correlation ranges from -0.93 (Nebius long) to 0.96 (Nebius). Most configs show strong positive correlation (r > 0.5), confirming the collinearity.
+
+![Phase proportion](figures/phase_proportion.png)
 
 Full results in `results/analysis-reports/phase-robustness-summary.txt`.
 
@@ -192,6 +196,8 @@ TRAIL labels each error with impact LOW/MEDIUM/HIGH. Recomputing kappa at strict
 Reference fail counts: 395 (any) -> 326 (MEDIUM+) -> 148 (HIGH only), out of 954 total steps.
 
 At HIGH-only, four of five graders reach kappa ~0.45-0.50 (moderate agreement). The disagreement is concentrated on LOW-impact errors -- cosmetic issues (missing closing tags, typos, formatting) that don't change tool behavior. This pattern held across all 5 model families, suggesting it reflects something general about how LLMs judge errors rather than a quirk of any particular model. This is a calibration difference, not a capability failure.
+
+![Severity threshold](figures/severity_threshold.png)
 
 ### Rubric iteration
 
