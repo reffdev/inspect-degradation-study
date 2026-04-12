@@ -45,7 +45,18 @@ Improvement is present in both successful and failed traces (GPT-4o: -0.0042 suc
 
 The 4 substantive improvement signals are robust to all available controls (phase, complexity, outcome). Early/late median-split confirms the raw pattern (4-7.5pp lower error rates in the second half of traces). Whether this reflects agents genuinely learning from feedback during a task, or a remaining uncontrolled confound, is an open question.
 
-**Step-phase classifier.** The explore/act classifier uses framework-aware detection layers: Auto-SWE structured tool calls, OpenHands bracket commands with subcommand parsing (e.g., `[str_replace_editor] view` -> explore, `[str_replace_editor] str_replace` -> act), XML blocks for SWE-agent/terminus, and a shell-command fallback. Accuracy: 100% on Auto-SWE (verified against ground-truth tool names), zero known misclassifications on OpenHands. SWE-agent accuracy has not been measured against human labels.
+**Step-phase classifier.** The explore/act classifier uses framework-aware detection layers: Auto-SWE structured tool calls, OpenHands bracket commands with subcommand parsing (e.g., `[str_replace_editor] view` -> explore, `[str_replace_editor] str_replace` -> act), XML blocks for SWE-agent/terminus, and a shell-command fallback.
+
+Validation accuracy by framework:
+
+| Framework | Method | Accuracy |
+|---|---|---|
+| Auto-SWE | Verified against ground-truth tool names | 100% (1177 steps) |
+| SWE-agent | 100-step random sample, human-reviewed | 98-100% (100 steps) |
+| OpenHands | Manual inspection | Zero known misclassifications |
+| Terminus | Uses same XML/shell pipeline as SWE-agent | Not independently validated |
+
+SWE-agent validation: 100 randomly sampled steps from 30 Nebius/Llama 70B traces (seed=42). 74 classified as act, 26 as explore. 1-2 borderline cases where the agent is reasoning about code structure with no explicit command (defaults to act). See `scripts/validate_step_phase.py` to reproduce or extend the validation.
 
 ---
 
