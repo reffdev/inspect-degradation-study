@@ -1,6 +1,6 @@
 # Do AI Agents Degrade Over Long Tasks?
 
-I built a statistical pipeline to answer this question rigorously, tested it across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps), and found that every apparent degradation signal was a measurement artifact.
+A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). Every apparent degradation signal turned out to be a measurement artifact.
 
 ## The result
 
@@ -18,7 +18,7 @@ Agents explore early (reads, searches -- low error rate) and act late (edits, te
 
 A second round of corrections targeted the step-phase classifier itself, which was misclassifying 30-60% of steps on 3 of 4 frameworks. Fixing it eliminated 4 more apparent degradation signals across other configurations.
 
-After all corrections across 15 configurations: 8 show no effect, 6 show significant improvement over time, 1 shows degradation that doesn't replicate on an independent sample. The improvement pattern likely reflects the same phase-composition dynamic from the other direction -- the step-phase covariate may overcorrect when exploration is genuinely harder than action for a given model. I haven't applied the same level of scrutiny to the improvement signals as to the degradation signals, so they should be treated as provisional.
+After all corrections across 15 configurations: 8 show no effect, 6 show significant improvement over time, 1 shows degradation that doesn't replicate on an independent sample. The improvement pattern likely reflects the same phase-composition dynamic from the other direction -- the step-phase covariate may overcorrect when exploration is genuinely harder than action for a given model. The improvement signals have not been subjected to the same scrutiny as the degradation signals and should be treated as provisional.
 
 ## Why this matters
 
@@ -28,25 +28,25 @@ Teams build context management into agent scaffolding -- sliding windows, summar
 
 Long-context accuracy degradation is well-documented for *retrieval* tasks. Liu et al. 2024 ("Lost in the Middle") showed that LLMs struggle to use information placed in the middle of long contexts, and needle-in-a-haystack benchmarks measure how reliably models retrieve specific facts as context grows. These are real effects, but they test a different capability than what agents do during a task: retrieving a planted fact from a long prompt is not the same as generating a correct next action given the full history of prior actions.
 
-The assumption that agents degrade over long tasks appears widely in framework documentation, blog posts, and conference talks -- typically framed as "context window limitations" or "attention degradation" -- but I could not find published work that measures within-run step-level error trajectories for coding agents specifically. The closest prior work is Anthropic's "Demystifying Evals" (2025), which discusses per-step evaluation methodology for agents but does not report degradation measurements. TRAIL (Patronus AI) provides expert-annotated step-level labels but reports full-trace accuracy, not temporal patterns.
+The assumption that agents degrade over long tasks appears widely in framework documentation, blog posts, and conference talks -- typically framed as "context window limitations" or "attention degradation" -- but there does not appear to be published work measuring within-run step-level error trajectories for coding agents specifically. The closest prior work is Anthropic's "Demystifying Evals" (2025), which discusses per-step evaluation methodology for agents but does not report degradation measurements. TRAIL (Patronus AI) provides expert-annotated step-level labels but reports full-trace accuracy, not temporal patterns.
 
 This study fills that gap: instead of assuming degradation exists and building around it, or assuming it doesn't and ignoring it, it measures the step-level error trajectory directly and decomposes it from confounds.
 
 ## The tool
 
-[**inspect-degradation**](https://github.com/reffdev/inspect-degradation) -- an Inspect AI extension that decomposes agent traces into per-step structured judgments, validates the grader against human labels, corrects downstream statistics for grader noise, and runs the full analysis battery. The tool is a reusable package anyone can install. This repo documents the study I ran with it.
+[**inspect-degradation**](https://github.com/reffdev/inspect-degradation) -- an Inspect AI extension that decomposes agent traces into per-step structured judgments, validates the grader against human labels, corrects downstream statistics for grader noise, and runs the full analysis battery. The tool is a reusable package; this repo documents the study conducted with it.
 
 ## Approach
 
 This started as a straightforward measurement project: grade agent steps, fit a regression, report the slope. Each round of controls revealed a new confound, and the initial result didn't survive any of them.
 
-**Grader validation.** Tested 7 grader configurations against TRAIL's human labels. Found that cheap models match frontier, ensembles don't beat the best single model, and rubric iteration has negative returns. Selected MiniMax ($0.40/M) for the degradation analysis. A side finding: LLM graders naturally calibrate to MEDIUM+ impact errors, ignoring cosmetic LOW-impact issues. This held across all 5 model families tested and is probably relevant to anyone building LLM-as-judge systems.
+**Grader validation.** 7 grader configurations were tested against TRAIL's human labels. Cheap models match frontier, ensembles don't beat the best single model, and rubric iteration has negative returns. MiniMax ($0.40/M) was selected for the degradation analysis. A separate finding: LLM graders naturally calibrate to MEDIUM+ impact errors, ignoring cosmetic LOW-impact issues. This held across all 5 model families tested and likely generalizes to LLM-as-judge systems beyond this study.
 
 **Degradation analysis.** The first dataset (Nebius / Llama 70B, 30 traces) showed clear degradation. Adding mixed-effects controls cut the coefficient by 4x. Adding a step-phase covariate eliminated it entirely -- the "degradation" was agents shifting from exploration to action over the course of a task.
 
-I then ran 14 more configurations to see if this pattern held. It did, but with a twist: the step-phase classifier I'd built for SWE-agent's shell commands was misclassifying 30-60% of steps on frameworks using structured tool calls (OpenHands bracket commands, Auto-SWE function calls). Fixing the classifier eliminated 4 more apparent degradation signals. The measurement tool was producing the artifact it was designed to detect.
+14 more configurations tested whether this pattern held. It did, but with a complication: the step-phase classifier -- originally built for SWE-agent's shell commands -- was misclassifying 30-60% of steps on frameworks using structured tool calls (OpenHands bracket commands, Auto-SWE function calls). Fixing the classifier eliminated 4 more apparent degradation signals. The measurement tool was producing the artifact it was designed to detect.
 
-The hardest part was the classifier. Each framework has a different interaction pattern -- SWE-agent uses XML blocks, OpenHands uses bracket commands with subcommands (`[str_replace_editor] view` is explore, `[str_replace_editor] str_replace` is act), terminus uses its own XML format, Auto-SWE uses structured tool calls. Getting this right required framework-specific detection layers, and getting it wrong produced convincing false positives.
+The classifier required framework-specific detection layers. Each framework has a different interaction pattern -- SWE-agent uses XML blocks, OpenHands uses bracket commands with subcommands (`[str_replace_editor] view` is explore, `[str_replace_editor] str_replace` is act), terminus uses its own XML format, Auto-SWE uses structured tool calls. Getting classification wrong produced convincing false positives.
 
 ## What actually predicts step-level errors
 
@@ -62,7 +62,7 @@ See [FINDINGS.md](FINDINGS.md) for the full cross-dataset table, per-configurati
 
 ## Scope and limitations
 
-The contribution is the tool and the methodology, not a definitive answer to "do agents degrade?" Power analysis shows these corpus sizes (30-50 traces, 15-25 steps) can detect slopes of ~0.01 errors/step at 80% power -- a 15-step trace accumulating 15% more errors by its end. Smaller effects (<0.005/step) are below the detection floor. The null results rule out large degradation but cannot distinguish "no effect" from "very small effect." See the [power analysis](FINDINGS.md#power-analysis) for the full table.
+The primary contribution is the measurement methodology and reusable tooling, not a definitive answer to "do agents degrade?" Power analysis shows these corpus sizes (30-50 traces, 15-25 steps) can detect slopes of ~0.01 errors/step at 80% power -- a 15-step trace accumulating 15% more errors by its end. Smaller effects (<0.005/step) are below the detection floor. The null results rule out large degradation but cannot distinguish "no effect" from "very small effect." See the [power analysis](FINDINGS.md#power-analysis) for the full table.
 
 Key caveats:
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished.
