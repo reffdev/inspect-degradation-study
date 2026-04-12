@@ -300,8 +300,11 @@ def figure_phase_proportion(output_dir: Path) -> None:
             act_fraction=("step_phase", lambda s: (s == "act").mean()),
             count=("step_phase", "size"),
         ).reset_index()
-        # Drop bins with very few observations
+        # Drop bins with very few traces (avoids 1-2 trace tails
+        # dominating the visual, especially for long-trace configs).
         grouped = grouped[grouped["count"] >= 5]
+        n_traces_per_bin = df.groupby("step_bin")["trace_id"].nunique()
+        grouped = grouped[grouped["step_bin"].map(n_traces_per_bin) >= 3]
         ax.plot(
             grouped["step_bin"], grouped["act_fraction"],
             marker="o", markersize=5, linewidth=1.5, label=config_name,
