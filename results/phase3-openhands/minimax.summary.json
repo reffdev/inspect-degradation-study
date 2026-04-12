@@ -1,0 +1,6 @@
+{
+  "grader": "minimax",
+  "dataset": "OpenHands",
+  "n_graded": 50,
+  "n_errors": 0
+}

@@ -1,0 +1,12 @@
+{
+  "name": "gpt4o-sweagent",
+  "n_graded": 0,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 0,
+    "n_truncations": 0,
+    "rate": 0.0,
+    "total_steps_dropped": 0,
+    "mean_dropped_per_truncation": 0.0
+  }
+}

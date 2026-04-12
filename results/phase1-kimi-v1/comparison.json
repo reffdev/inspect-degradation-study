@@ -1,0 +1,65 @@
+{
+  "graders": {
+    "kimi": {
+      "grader": "openai/moonshotai/kimi-k2-0905",
+      "n_pairs": 670,
+      "per_dimension": {
+        "complexity": {
+          "dimension": "complexity",
+          "estimate": {
+            "ci_high": "nan",
+            "ci_low": "nan",
+            "confidence_level": 0.95,
+            "method": "empty",
+            "n": 0,
+            "value": "nan"
+          },
+          "metric": "weighted_cohens_kappa",
+          "n_pairs": 0
+        },
+        "dependency": {
+          "dimension": "dependency",
+          "estimate": {
+            "ci_high": "nan",
+            "ci_low": "nan",
+            "confidence_level": 0.95,
+            "method": "empty",
+            "n": 0,
+            "value": "nan"
+          },
+          "metric": "cohens_kappa",
+          "n_pairs": 0
+        },
+        "severity": {
+          "dimension": "severity",
+          "estimate": {
+            "ci_high": 0.6863823848986987,
+            "ci_low": 0.018556865277970454,
+            "confidence_level": 0.95,
+            "method": "bootstrap_bca",
+            "n": 80,
+            "se": 0.16099091803585092,
+            "value": 0.3939393939393939
+          },
+          "metric": "weighted_cohens_kappa",
+          "n_pairs": 25
+        },
+        "validity": {
+          "dimension": "validity",
+          "estimate": {
+            "ci_high": 0.07911788276780819,
+            "ci_low": 0.003943858698969407,
+            "confidence_level": 0.95,
+            "method": "bootstrap_bca",
+            "n": 80,
+            "se": 0.019415575215682844,
+            "value": 0.04080661067092867
+          },
+          "metric": "cohens_kappa",
+          "n_pairs": 670
+        }
+      }
+    }
+  },
+  "n_traces": 80
+}

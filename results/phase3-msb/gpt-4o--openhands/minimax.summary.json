@@ -1,0 +1,14 @@
+{
+  "model": "gpt-4o",
+  "scaffolding": "openhands",
+  "grader": "minimax",
+  "n_graded": 50,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 1439,
+    "n_truncations": 0,
+    "rate": 0.0,
+    "total_steps_dropped": 0,
+    "mean_dropped_per_truncation": 0.0
+  }
+}

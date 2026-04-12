@@ -1,0 +1,60 @@
+{
+  "grader": "ensemble:trio",
+  "n_pairs": 954,
+  "per_dimension": {
+    "complexity": {
+      "dimension": "complexity",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 0
+    },
+    "dependency": {
+      "dimension": "dependency",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 0
+    },
+    "severity": {
+      "dimension": "severity",
+      "estimate": {
+        "ci_high": 0.27779905870866306,
+        "ci_low": -0.08103244049821479,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.09139675486119739,
+        "value": 0.0942708333333333
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 94
+    },
+    "validity": {
+      "dimension": "validity",
+      "estimate": {
+        "ci_high": 0.16089187941204458,
+        "ci_low": 0.08048690059694606,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.02097511529168383,
+        "value": 0.11799733290528111
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 954
+    }
+  }
+}

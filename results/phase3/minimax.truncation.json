@@ -1,0 +1,7 @@
+{
+  "n_renders": 393,
+  "n_truncations": 164,
+  "rate": 0.4173027989821883,
+  "total_steps_dropped": 2305,
+  "mean_dropped_per_truncation": 14.054878048780488
+}

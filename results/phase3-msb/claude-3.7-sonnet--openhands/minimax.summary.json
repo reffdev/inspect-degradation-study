@@ -1,0 +1,14 @@
+{
+  "model": "claude-3.7-sonnet",
+  "scaffolding": "openhands",
+  "grader": "minimax",
+  "n_graded": 50,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 2089,
+    "n_truncations": 1370,
+    "rate": 0.6558161799904261,
+    "total_steps_dropped": 16816,
+    "mean_dropped_per_truncation": 12.274452554744526
+  }
+}

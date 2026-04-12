@@ -1,0 +1,20 @@
+Phase Robustness Analysis
+=========================
+
+Config                                   | IX p-val |  Act slope |    Act p |  Exp slope |    Exp p | Phase-step r
+---                                      |      --- |        --- |      --- |        --- |      --- |          ---
+Nebius / Llama 70B                       |    0.357 |    +0.0017 |    0.433 |    +0.0008 |    0.626 |         0.96
+SWE-smith / Claude 3.7                   |    0.951 |    -0.0001 |    0.925 |    -0.0001 |    0.768 |         0.55
+Nebius long                              |    0.003 |    -0.0002 |    0.538 |    +0.0001 |    0.659 |        -0.93
+Crossover / GPT-4o / SWE-agent           |    0.254 |    +0.0002 |    0.395 |    +0.0010 |    0.048 |         0.83
+MSB / GPT-4o / SWE-agent                 |    0.016 |    -0.0041 |  1.5e-10 |    -0.0022 |  5.6e-04 |         0.75
+Crossover / Claude 3.5 / SWE-agent       |  4.4e-06 |    +0.0026 |    0.013 |    +0.0005 |    0.069 |         0.22
+MSB / Claude 3.5 / SWE-agent             |    0.201 |    -0.0026 |  6.2e-05 |    -0.0017 |  1.3e-04 |         0.80
+OpenHands / GPT-4o                       |    0.136 |    -0.0003 |    0.911 |    -0.0030 |    0.003 |         0.60
+MSB / GPT-4o / OpenHands                 |    0.205 |    -0.0004 |    0.017 |        NaN |      NaN |         0.67
+Crossover / Claude 3.5 / OpenHands       |    0.272 |    +0.0006 |    0.410 |    +0.0013 |    0.085 |         0.81
+MSB / Claude 3.5 / OpenHands             |  1.3e-04 |    -0.0017 |  7.4e-09 |    -0.0001 |    0.773 |         0.88
+MSB / Claude 3.7 / OpenHands             |    0.215 |    -0.0003 |    0.009 |    -0.0001 |    0.311 |         0.76
+OpenHands / Qwen3-Coder                  |    0.297 |    +0.0004 |    0.147 |    +0.0002 |    0.287 |         0.53
+Terminus / GLM 4.7                       |    0.049 |    -0.0094 |  4.4e-05 |    -0.0037 |    0.016 |        -0.24
+Auto-SWE                                 |    0.205 |    +0.0011 |    0.081 |    +0.0003 |    0.246 |         0.87

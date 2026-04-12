@@ -1,0 +1,5 @@
+inspect-degradation
+numpy
+pandas
+scipy
+matplotlib

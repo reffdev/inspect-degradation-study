@@ -1,0 +1,60 @@
+{
+  "grader": "openai/minimax/minimax-m2.5@sc3",
+  "n_pairs": 954,
+  "per_dimension": {
+    "complexity": {
+      "dimension": "complexity",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 0
+    },
+    "dependency": {
+      "dimension": "dependency",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 0
+    },
+    "severity": {
+      "dimension": "severity",
+      "estimate": {
+        "ci_high": 0.32558641124348564,
+        "ci_low": -0.04815232491054065,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.0948699554832144,
+        "value": 0.12882854436375113
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 89
+    },
+    "validity": {
+      "dimension": "validity",
+      "estimate": {
+        "ci_high": 0.07726593759896841,
+        "ci_low": 0.024044668346596923,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.013642582839289883,
+        "value": 0.050828611646695596
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 954
+    }
+  }
+}

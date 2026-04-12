@@ -1,0 +1,63 @@
+
+======================================================================
+  Analysis of 50 Nebius traces
+======================================================================
+
+## Step-level rates (trace-mean with bootstrap CI)
+  Error rate:      +0.0749 [+0.0582, +0.0926] (n=50, method=bootstrap_bca)
+  Neutral rate:    +0.6660 [+0.6274, +0.7026] (n=50, method=bootstrap_bca)
+  Productive rate: +0.2591 [+0.2287, +0.2907] (n=50, method=bootstrap_bca)
+
+## Per-trace OLS slopes (bootstrap CI over traces)
+  Error rate slope:   -0.0075 [-0.0109, -0.0042] (n=50, method=bootstrap_bca)
+    traces used: 50/50
+  Neutral rate slope: +0.0013 [-0.0053, +0.0069] (n=50, method=bootstrap_bca)
+    traces used: 50/50
+
+## Mixed-effects step-level model
+  Frame: 961 rows, 50 traces
+  Formula: is_error ~ step_index + complexity_num + C(step_phase)
+  fit_usable: True, converged: True
+    Intercept: +0.1754 [+0.1392, +0.2117] p=0.0000 *
+    C(step_phase)[T.explore]: -0.0611 [-0.0941, -0.0281] p=0.0003 *
+    step_index: -0.0068 [-0.0096, -0.0040] p=0.0000 *
+    complexity_num: -0.0188 [-0.0455, +0.0079] p=0.1681 
+  Random effects: group_var=0.0004, residual_var=0.0663, ICC=0.007
+
+## Interaction model: step_index * step_phase
+  Formula: is_error ~ step_index * C(step_phase) + complexity_num
+  fit_usable: True
+    Intercept: +0.1989 [+0.1558, +0.2420] p=0.0000 *
+    C(step_phase)[T.explore]: -0.1133 [-0.1749, -0.0517] p=0.0003 *
+    step_index: -0.0094 [-0.0132, -0.0056] p=0.0000 *
+    >> step_index:C(step_phase)[T.explore]: +0.0056 [+0.0000, +0.0112] p=0.0494 *
+    complexity_num: -0.0192 [-0.0459, +0.0075] p=0.1590 
+
+## SIMEX correction on step_index slope
+  Flip probability (from Phase 1): 0.12
+  Naive OLS slope:     -0.0067 (n=961, method=simex_naive)
+  Corrected OLS slope: -0.0088 [-0.0094, -0.0067] (n=961, method=simex_bootstrap)
+  Correction ratio: 1.323
+  Mixed-effects slope (naive): -0.0068
+  Mixed-effects slope (SIMEX-corrected): -0.0090
+  Attenuation: +32.3%
+
+## Kaplan-Meier first-error survival
+  Median survival time: +3.0000 [+2.0000, +5.0000] (n=50, method=km_median)
+  n_traces=50, n_events=37
+
+## Cascade chain analysis
+  Raw chain lengths: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  Mean chain length: +1.0000 [+1.0000, +1.0000] (n=50, method=bootstrap_percentile)
+
+## Loop analysis
+  Raw loop rate: 0.051
+  Loop chain lengths: [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1]
+  Mean loop chain length: +1.0889 [+1.0270, +1.1861] (n=50, method=bootstrap_bca)
+
+## Autocorrelation diagnostics
+  Mean ACF: ['-0.013', '-0.032', '-0.061'] (lags 1-3)
+  n_traces_used: 50
+  Ljung-Box rejection rate: +0.0000 [+0.0000, +0.0941] (n=37, method=wilson)
+  n_tested=37, n_rejected=0
+

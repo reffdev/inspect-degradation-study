@@ -1,0 +1,12 @@
+{
+  "name": "claude35-sweagent",
+  "n_graded": 50,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 1060,
+    "n_truncations": 468,
+    "rate": 0.44150943396226416,
+    "total_steps_dropped": 9282,
+    "mean_dropped_per_truncation": 19.833333333333332
+  }
+}

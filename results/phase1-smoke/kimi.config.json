@@ -1,0 +1,32 @@
+{
+  "canary": null,
+  "created_at": "2026-04-10T17:47:08.557733+00:00",
+  "dataset": {
+    "limit": 50,
+    "name": "trail",
+    "path": "E:\\Projects\\zerg\\trail-benchmark\\benchmarking",
+    "splits": [
+      "gaia",
+      "swe_bench"
+    ]
+  },
+  "git_commit": null,
+  "grader": {
+    "children": {},
+    "fields": {
+      "max_tokens": 1024,
+      "model": "openai/moonshotai/kimi-k2-0905",
+      "rubric_name": "step_grader_v2.1",
+      "rubric_version": 3,
+      "sample_n": 1,
+      "temperature": 0.0
+    },
+    "kind": "llm",
+    "name": "openai/moonshotai/kimi-k2-0905"
+  },
+  "name": "kimi",
+  "notes": "",
+  "package_version": "0.0.1",
+  "python_version": "3.13.12",
+  "seed": null
+}

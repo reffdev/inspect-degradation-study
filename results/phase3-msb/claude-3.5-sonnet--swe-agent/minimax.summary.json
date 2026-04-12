@@ -1,0 +1,14 @@
+{
+  "model": "claude-3.5-sonnet",
+  "scaffolding": "swe-agent",
+  "grader": "minimax",
+  "n_graded": 50,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 1318,
+    "n_truncations": 681,
+    "rate": 0.5166919575113809,
+    "total_steps_dropped": 12568,
+    "mean_dropped_per_truncation": 18.455212922173274
+  }
+}

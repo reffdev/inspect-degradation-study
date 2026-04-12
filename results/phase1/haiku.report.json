@@ -1,0 +1,60 @@
+{
+  "grader": "openai/anthropic/claude-haiku-4.5",
+  "n_pairs": 954,
+  "per_dimension": {
+    "complexity": {
+      "dimension": "complexity",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 0
+    },
+    "dependency": {
+      "dimension": "dependency",
+      "estimate": {
+        "ci_high": "nan",
+        "ci_low": "nan",
+        "confidence_level": 0.95,
+        "method": "empty",
+        "n": 0,
+        "value": "nan"
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 0
+    },
+    "severity": {
+      "dimension": "severity",
+      "estimate": {
+        "ci_high": 0.18064336845678478,
+        "ci_low": 0.0,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.03692379243432358,
+        "value": 0.040281485076437695
+      },
+      "metric": "weighted_cohens_kappa",
+      "n_pairs": 113
+    },
+    "validity": {
+      "dimension": "validity",
+      "estimate": {
+        "ci_high": 0.20119134253780668,
+        "ci_low": 0.1017296392939289,
+        "confidence_level": 0.95,
+        "method": "bootstrap_bca",
+        "n": 146,
+        "se": 0.02539454576314053,
+        "value": 0.14839328170670077
+      },
+      "metric": "cohens_kappa",
+      "n_pairs": 954
+    }
+  }
+}

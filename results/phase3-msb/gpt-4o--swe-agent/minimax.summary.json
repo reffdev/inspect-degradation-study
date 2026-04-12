@@ -1,0 +1,14 @@
+{
+  "model": "gpt-4o",
+  "scaffolding": "swe-agent",
+  "grader": "minimax",
+  "n_graded": 50,
+  "n_errors": 0,
+  "truncation": {
+    "n_renders": 1500,
+    "n_truncations": 751,
+    "rate": 0.5006666666666667,
+    "total_steps_dropped": 13225,
+    "mean_dropped_per_truncation": 17.609853528628495
+  }
+}

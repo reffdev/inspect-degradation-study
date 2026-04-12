@@ -1,0 +1,12 @@
+{
+  "grader": "minimax",
+  "min_steps": 40,
+  "nebius_models": null,
+  "n_graded": 50,
+  "n_errors": 0,
+  "models_found": [
+    "swe-agent-llama-70b",
+    "swe-agent-llama-405b",
+    "swe-agent-llama-8b"
+  ]
+}
