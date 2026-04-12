@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from inspect_degradation.analysis.frame import traces_to_frame
 from inspect_degradation.analysis.rates import (
