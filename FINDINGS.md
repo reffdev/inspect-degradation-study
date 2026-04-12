@@ -10,20 +10,20 @@ Detailed results from the degradation study. For context and methodology, see [R
 
 | Dataset | Model | Scaffolding | Traces | Steps | step_index | p-value | Direction |
 |---|---|---|---|---|---|---|---|
-| Nebius | Llama 70B | SWE-agent | 30 | 632 | +0.0006 | 0.68 | No effect |
-| SWE-smith | Claude 3.7 Sonnet | SWE-agent | 30 | 858 | +0.0001 | 0.90 | No effect |
-| Nebius long | Llama all (40+ steps) | SWE-agent | 50 | 3800 | +0.0001 | 0.38 | No effect |
-| Crossover | GPT-4o | SWE-agent | 50 | 1677 | +0.0003 | 0.126 | No effect |
-| **MSB** | **GPT-4o** | **SWE-agent** | **50** | **1500** | **-0.0034** | **<0.0001** | **Improves** |
 | **Crossover** | **Claude 3.5 Sonnet** | **SWE-agent** | **50** | **1060** | **+0.0018** | **0.003** | **Degrades** |
 | **MSB** | **Claude 3.5 Sonnet** | **SWE-agent** | **50** | **1318** | **-0.0021** | **<0.0001** | **Improves** |
-| OpenHands | GPT-4o | OpenHands | 50 | 1126 | -0.0011 | 0.40 | No effect |
-| **MSB** | **GPT-4o** | **OpenHands** | **50** | **1439** | **-0.0003** | **0.020** | **Improves** |
 | Crossover | Claude 3.5 Sonnet | OpenHands | 50 | 1518 | +0.0007 | 0.162 | No effect |
 | **MSB** | **Claude 3.5 Sonnet** | **OpenHands** | **50** | **1987** | **-0.0014** | **<0.0001** | **Improves** |
+| SWE-smith | Claude 3.7 Sonnet | SWE-agent | 30 | 858 | +0.0001 | 0.90 | No effect |
 | **MSB** | **Claude 3.7 Sonnet** | **OpenHands** | **50** | **2089** | **-0.0002** | **0.007** | **Improves** |
-| OpenHands | Qwen3-Coder-480B | OpenHands | 30 | 1961 | +0.0002 | 0.147 | No effect |
 | **Terminus** | **GLM 4.7** | **terminus-2** | **50** | **961** | **-0.0068** | **<0.0001** | **Improves** |
+| Crossover | GPT-4o | SWE-agent | 50 | 1677 | +0.0003 | 0.126 | No effect |
+| **MSB** | **GPT-4o** | **SWE-agent** | **50** | **1500** | **-0.0034** | **<0.0001** | **Improves** |
+| OpenHands | GPT-4o | OpenHands | 50 | 1126 | -0.0011 | 0.40 | No effect |
+| **MSB** | **GPT-4o** | **OpenHands** | **50** | **1439** | **-0.0003** | **0.020** | **Improves** |
+| Nebius | Llama 70B | SWE-agent | 30 | 632 | +0.0006 | 0.68 | No effect |
+| Nebius long | Llama all (40+ steps) | SWE-agent | 50 | 3800 | +0.0001 | 0.38 | No effect |
+| OpenHands | Qwen3-Coder-480B | OpenHands | 30 | 1961 | +0.0002 | 0.147 | No effect |
 | Auto-SWE | Qwen3-Coder-Next (6 models) | Custom pipeline | 50 | 1177 | +0.0006 | 0.106 | No effect |
 
 All coefficients are from mixed-effects linear probability models with random intercept for task, controlling for step phase, complexity, and outcome where available. Full reports in `results/analysis-reports/`.
@@ -134,20 +134,20 @@ Of 15 configs, 11 show non-significant interactions (p > 0.05), confirming the p
 
 | Config | Act slope | Act p | Explore slope | Explore p |
 |---|---|---|---|---|
-| Nebius / Llama 70B | +0.0017 | 0.433 | +0.0008 | 0.626 |
-| SWE-smith / Claude 3.7 | -0.0001 | 0.925 | -0.0001 | 0.768 |
-| Nebius long | -0.0002 | 0.538 | +0.0001 | 0.659 |
-| Crossover / GPT-4o / SWE-agent | +0.0002 | 0.395 | +0.0010 | 0.048 |
-| MSB / GPT-4o / SWE-agent | -0.0041 | <0.0001 | -0.0022 | <0.001 |
 | Crossover / Claude 3.5 / SWE-agent | +0.0026 | 0.013 | +0.0005 | 0.069 |
 | MSB / Claude 3.5 / SWE-agent | -0.0026 | <0.0001 | -0.0017 | <0.001 |
-| OpenHands / GPT-4o | -0.0003 | 0.911 | -0.0030 | 0.003 |
-| MSB / GPT-4o / OpenHands | -0.0004 | 0.017 | NaN | NaN |
 | Crossover / Claude 3.5 / OpenHands | +0.0006 | 0.410 | +0.0013 | 0.085 |
 | MSB / Claude 3.5 / OpenHands | -0.0017 | <0.0001 | -0.0001 | 0.773 |
+| SWE-smith / Claude 3.7 | -0.0001 | 0.925 | -0.0001 | 0.768 |
 | MSB / Claude 3.7 / OpenHands | -0.0003 | 0.009 | -0.0001 | 0.311 |
-| OpenHands / Qwen3-Coder | +0.0004 | 0.147 | +0.0002 | 0.287 |
 | Terminus / GLM 4.7 | -0.0094 | <0.0001 | -0.0037 | 0.016 |
+| Crossover / GPT-4o / SWE-agent | +0.0002 | 0.395 | +0.0010 | 0.048 |
+| MSB / GPT-4o / SWE-agent | -0.0041 | <0.0001 | -0.0022 | <0.001 |
+| OpenHands / GPT-4o | -0.0003 | 0.911 | -0.0030 | 0.003 |
+| MSB / GPT-4o / OpenHands | -0.0004 | 0.017 | NaN | NaN |
+| Nebius / Llama 70B | +0.0017 | 0.433 | +0.0008 | 0.626 |
+| Nebius long | -0.0002 | 0.538 | +0.0001 | 0.659 |
+| OpenHands / Qwen3-Coder | +0.0004 | 0.147 | +0.0002 | 0.287 |
 | Auto-SWE | +0.0011 | 0.081 | +0.0003 | 0.246 |
 
 The key pattern: configs that showed null effects in the main model (Nebius, SWE-smith, Nebius long, Auto-SWE, Qwen3-Coder, Crossover/OpenHands) remain null within both phases. The phase covariate is not masking degradation in these cases.
