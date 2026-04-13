@@ -78,7 +78,14 @@ All graded traces are cached in `results/` -- analysis scripts are deterministic
 To regenerate all derived outputs:
 
 ```bash
-python scripts/phase_robustness.py      # interaction + stratified + proportion analysis
-python scripts/run_power_analysis.py     # power table with actual corpus parameters
-python scripts/generate_figures.py       # all figures in figures/
+python scripts/phase_robustness.py               # interaction + stratified + proportion analysis
+python scripts/run_power_analysis.py              # power table with actual corpus parameters
+python scripts/generate_figures.py                # all figures in figures/
+python scripts/analyze_improvement.py             # improvement signal investigation
+python scripts/grader_accuracy_by_position.py     # position-dependent kappa
+python scripts/grader_correction_analysis.py      # two-grader agreement + flip rates
+python scripts/compare_grader_sensitivity.py      # MiniMax vs Haiku slopes
+python scripts/ablations.py                       # trace length, model size, within-phase
 ```
+
+See [FINDINGS.md](FINDINGS.md) for ablation results and proposed mitigations for position-dependent grader accuracy (fixed-window grading, two-grader diagnostic, position-stratified SIMEX).

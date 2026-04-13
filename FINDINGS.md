@@ -279,6 +279,30 @@ These findings do not establish that degradation is real -- the agree-only subse
 
 ---
 
+## Ablations
+
+Three ablation analyses test robustness of the null result. See `scripts/ablations.py`.
+
+**Trace length.** Splitting each configuration at the median trace length, short traces show marginally positive slopes (Nebius: +0.014, p=0.09; Nebius long: +0.003, p<0.001) while long traces are flat (slopes <0.001, p>0.7). This is consistent with survivorship: short traces that fail fast have steeper error trajectories, while long traces dominate the overall regression and are flat.
+
+**Model size.** On the Nebius long-trace dataset (Llama 70B: 41 traces, 8B: 8 traces), neither model size shows degradation: 70B slope +0.0001 (p=0.74), 8B slope +0.0002 (p=0.43). Error rates differ (70B: 26.6%, 8B: 32.4%) but slopes do not. Model capacity does not interact with step position.
+
+**Within-phase step position.** Fitting the regression on action steps only (excluding exploration entirely) produces non-significant slopes: Nebius +0.0017 (p=0.43), Nebius long -0.0002 (p=0.54). The phase covariate is not hiding within-phase degradation.
+
+---
+
+## Toward mitigation
+
+The position-dependent accuracy finding admits engineering solutions. Three approaches are proposed; the first is directly supported by existing infrastructure.
+
+**Fixed-window grading.** The grader's prompt grows with step index because it includes all prior steps as context. If the position effect is driven by prompt length, capping the prior-step window to a fixed character budget should stabilize accuracy across positions. The pipeline already supports this via `prior_context_char_budget`. A targeted experiment -- re-grading the same traces with a tight budget (e.g., 5,000 characters) and measuring whether the position kappa drop narrows -- would directly test the causal mechanism.
+
+**Two-grader diagnostic.** Running a second grader on the same traces and comparing slopes is a cheap diagnostic for grader-specific bias. If slopes diverge, the agreement subset identifies which steps are contested. At current API prices, re-grading 632 steps with Haiku costs under $1.
+
+**Position-stratified noise correction.** The current SIMEX uses a single flip probability. A position-stratified variant would compute separate flip rates for early and late steps. At the HIGH-only threshold this is unnecessary (flip rate is stable across positions), but at MEDIUM+ where position dependence is stronger (0.24 early, 0.36 late) it would matter for a future grader that operates at a lower threshold.
+
+---
+
 ## Unresolved concerns
 
 - **The rubric has not been validated by human experts.** No inter-rater reliability study has been conducted with this rubric. Whether it measures what it intends to measure is an open question.
@@ -286,7 +310,7 @@ These findings do not establish that degradation is real -- the agree-only subse
 - **Dataset and sample limitations.** 30-50 traces per configuration, mostly SWE-bench Python bug fixes. Earlier runs used streaming order (non-random); later runs introduced random sampling.
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished. Kappa values lack an interpretive anchor.
 - **The null result is produced by grader-specific late-step conservatism.** Two-grader agreement analysis shows both MiniMax and Haiku produce a +0.007 degradation slope on the 82% of steps they agree on. MiniMax's overall null is driven by 18% of steps where it misses errors Haiku catches -- concentrated at later positions (60 late-step errors Haiku finds that MiniMax doesn't, vs 15 the other direction). The grader effectively operates at a HIGH-only threshold (73% FNR at MEDIUM+), and the SIMEX correction (0.12) is calibrated to that operating point. The study measures HIGH-severity degradation only. See `scripts/grader_correction_analysis.py` and `scripts/compare_grader_sensitivity.py`.
-- **Improvement signals survive all available controls.** 4 of 6 improvement configs show genuine improvement robust to phase, complexity, and outcome controls. Outcome labels were backfilled for 2 SWE-agent configs; improvement persists in both successful and failed traces. Whether this is within-run adaptation or an uncontrolled confound (e.g., task structure) is unresolved. 2 of 6 are floor effects. See `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`.
+- **Improvement signals survive all available controls.** 4 of 6 improvement configs show genuine improvement robust to phase, complexity, and outcome controls. Outcome labels were backfilled for 2 SWE-agent configs; improvement persists in both successful and failed traces. If this reflects genuine within-run adaptation, it would be a notable finding about in-context learning in agentic settings. The alternative is an uncontrolled confound (e.g., task structure). Distinguishing these requires either a controlled experiment or identifying a confound that explains improvement in failed traces specifically. 2 of 6 are floor effects. See `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`.
 
 ## Raw output files
 
