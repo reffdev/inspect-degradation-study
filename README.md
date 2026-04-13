@@ -2,7 +2,7 @@
 
 A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). The answer depends on who's grading. Most apparent degradation signals are measurement artifacts - but the process of dismantling them revealed something more broadly useful: LLM judges have position-dependent accuracy, becoming more conservative at later steps and systematically biasing temporal analyses toward null results. A related finding - that low agreement between LLM graders and human reference labels likely reflects a construct mismatch rather than grader failure - has implications for how LLM-as-judge systems are validated.
 
-Paper: [arXiv link or "manuscript in preparation"]
+Paper: manuscript in preparation
 
 ## The result
 
