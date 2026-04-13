@@ -67,7 +67,7 @@ The primary contribution is the measurement methodology and reusable tooling, no
 Key caveats:
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished.
 - **Grader validated on short traces only.** Validation used ~10 steps/trace; analysis traces run 10-100 steps with 42% hitting the prior-context cap.
-- **Context management is unknown for most scaffoldings.** If a framework silently drops context, the step_index axis becomes unreliable.
+- **Context management is unknown for most scaffoldings.** SWE-agent and OpenHands both have configurable context management (sliding windows, summarization), and the trajectory data does not record which settings were used. If a framework silently drops context, the step_index axis becomes unreliable. This cannot be resolved from the data alone.
 - **The rubric has not been validated by human experts** independent of the TRAIL labels.
 - **Improvement signals survive available controls but are not fully explained.** 4 of 6 are substantive; 2 are floor effects. Outcome control does not reduce the signal. See [FINDINGS.md](FINDINGS.md#cross-dataset-summary).
 
