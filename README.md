@@ -1,6 +1,6 @@
 # Do AI Agents Degrade Over Long Tasks?
 
-A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). Most apparent degradation signals turned out to be measurement artifacts -- but a grader sensitivity test found that the null result itself may be grader-dependent.
+A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). Most apparent degradation signals turned out to be measurement artifacts -- but the null result itself is an artifact of the grader becoming more conservative at later steps, masking a signal that both graders agree on when examined on steps they're confident about.
 
 ## The result
 
@@ -40,7 +40,7 @@ This study fills that gap: instead of assuming degradation exists and building a
 
 This started as a straightforward measurement project: grade agent steps, fit a regression, report the slope. Each round of controls revealed a new confound, and the initial result didn't survive any of them.
 
-**Grader validation.** 7 grader configurations were tested against TRAIL's human labels. Cheap models match frontier, ensembles don't beat the best single model, and rubric iteration has negative returns. MiniMax ($0.40/M) was selected for the degradation analysis. A separate finding: LLM graders naturally calibrate to MEDIUM+ impact errors, ignoring cosmetic LOW-impact issues. This held across all 5 model families tested and likely generalizes to LLM-as-judge systems beyond this study.
+**Grader validation.** 7 grader configurations were tested against TRAIL's human labels. Cheap models match frontier, ensembles don't beat the best single model, and rubric iteration has negative returns. MiniMax ($0.40/M) was selected for the degradation analysis. A separate finding: LLM graders naturally calibrate to HIGH-impact errors, ignoring most MEDIUM and all LOW-impact issues (73% false-negative rate at MEDIUM+, kappa 0.49 at HIGH-only). This held across all 5 model families tested and likely generalizes to LLM-as-judge systems beyond this study.
 
 **Degradation analysis.** The first dataset (Nebius / Llama 70B, 30 traces) showed clear degradation. Adding mixed-effects controls cut the coefficient by 4x. Adding a step-phase covariate eliminated it entirely -- the "degradation" was agents shifting from exploration to action over the course of a task.
 
@@ -50,7 +50,7 @@ The classifier required framework-specific detection layers. Each framework has 
 
 ## What actually predicts step-level errors
 
-Step position is not a significant predictor in 14 of 15 configurations using MiniMax as the grader, though a [sensitivity test](FINDINGS.md#grader-sensitivity-test) with Haiku found a significant slope on the same data. What consistently predicts errors across both graders:
+Step position is not a significant predictor in 14 of 15 configurations using MiniMax as the grader. However, a [sensitivity test](FINDINGS.md#grader-sensitivity-test) found that both MiniMax and Haiku produce a significant degradation slope (+0.007) on the 82% of steps they agree about -- the null result is driven by contested steps where MiniMax's late-step conservatism cancels the signal. What consistently predicts errors across both graders:
 
 - **What the agent is doing.** Action steps (edits, test runs) have 11-30pp higher error rates than exploration steps (reads, searches), p<0.0001 across all configurations. This is the dominant predictor.
 - **Model quality.** Error rates range from 2.1% (Qwen3-Coder) to 26% (Llama 70B). Claude 3.7 Sonnet sits at 4% on SWE-smith.
@@ -66,7 +66,7 @@ The primary contribution is the measurement methodology and reusable tooling, no
 
 Key caveats:
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished.
-- **The null result is grader-dependent.** Re-grading the same 30 Nebius traces with Haiku instead of MiniMax produces a significant degradation slope (+0.0140, p<0.0001) that MiniMax does not detect (+0.0006, p=0.68). Both graders' accuracy degrades at later steps (kappa drops from ~0.33 to ~0.03), but MiniMax becomes more conservative (misses more errors) while Haiku retains more signal. See `scripts/compare_grader_sensitivity.py`.
+- **The null result is produced by grader-specific late-step conservatism.** On the 82% of steps where MiniMax and Haiku agree on fail/not-fail, both produce a degradation slope of ~+0.007 (p<0.0001). MiniMax's overall null is driven by 18% of contested steps where it misses late-step errors that Haiku catches. The SIMEX correction uses a 0.12 flip rate (HIGH-only threshold), but the intended MEDIUM+ threshold has a 0.286 flip rate rising to 0.36 at later steps -- the grader effectively operates at HIGH-only regardless of intent. See `scripts/grader_correction_analysis.py`.
 - **Context management is unknown for most scaffoldings.** SWE-agent and OpenHands both have configurable context management (sliding windows, summarization), and the trajectory data does not record which settings were used. If a framework silently drops context, the step_index axis becomes unreliable. This cannot be resolved from the data alone.
 - **The rubric has not been validated by human experts** independent of the TRAIL labels.
 - **Improvement signals survive available controls but are not fully explained.** 4 of 6 are substantive; 2 are floor effects. Outcome control does not reduce the signal. See [FINDINGS.md](FINDINGS.md#cross-dataset-summary).

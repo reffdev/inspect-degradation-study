@@ -19,21 +19,30 @@ from inspect_degradation.store import GradedTraceStore
 STUDY_ROOT = Path(__file__).resolve().parent.parent
 
 # Add new grader caches here as they become available.
-GRADER_CACHES = {
-    "MiniMax": "results/phase3/minimax.cache.jsonl",
-    "Haiku": "results/sensitivity-haiku/haiku.cache.jsonl",
+# Grouped by dataset, then grader.
+COMPARISONS = {
+    "Nebius / Llama 70B (30 traces, 632 steps)": {
+        "MiniMax": "results/phase3/minimax.cache.jsonl",
+        "Haiku": "results/sensitivity-haiku/haiku.cache.jsonl",
+    },
+    "Nebius long (50 traces, 3800 steps, 40+ steps/trace)": {
+        "MiniMax": "results/phase3-long/minimax.cache.jsonl",
+        "Haiku": "results/sensitivity-haiku-long/haiku.cache.jsonl",
+    },
 }
 
 
-def main() -> None:
+def _analyze_group(group_name: str, grader_caches: dict[str, str]) -> None:
+    """Run sensitivity comparison for one dataset group."""
     print("=" * 75)
-    print("  Grader Sensitivity Test: Nebius / Llama 70B")
+    print(f"  {group_name}")
     print("=" * 75)
     print()
 
     results = {}
+    grader_labels = []
 
-    for label, rel_path in GRADER_CACHES.items():
+    for label, rel_path in grader_caches.items():
         path = STUDY_ROOT / rel_path
         if not path.exists():
             print(f"  {label}: SKIP (cache not found at {rel_path})")
@@ -48,6 +57,7 @@ def main() -> None:
         n_traces = df["trace_id"].nunique()
         n_steps = len(df)
         err_rate = df["is_error"].mean()
+        grader_labels.append(label)
 
         print(f"  {label}: {n_traces} traces, {n_steps} steps, {err_rate:.1%} error rate")
 
@@ -79,21 +89,24 @@ def main() -> None:
         print()
 
     # --- Summary ---
-    if len(results) >= 2:
+    matched = [l for l in grader_labels if f"{l}_with_phase" in results]
+    if len(matched) >= 2:
         print("-" * 75)
-        print("  Summary")
-        print("-" * 75)
-        grader_labels = [l for l in GRADER_CACHES if f"{l}_with_phase" in results]
-        if len(grader_labels) >= 2:
-            slopes = [results[f"{l}_with_phase"] for l in grader_labels]
-            diff = abs(slopes[0] - slopes[1])
-            print(f"\n  {grader_labels[0]} slope: {slopes[0]:+.4f}")
-            print(f"  {grader_labels[1]} slope: {slopes[1]:+.4f}")
-            print(f"  Difference: {diff:.4f}")
-            if diff < 0.005:
-                print(f"\n  Slopes agree within 0.005 -- conclusion is not sensitive to grader choice.")
-            else:
-                print(f"\n  Slopes differ by {diff:.4f} -- grader choice may affect the conclusion.")
+        slopes = [results[f"{l}_with_phase"] for l in matched]
+        for l, s in zip(matched, slopes):
+            print(f"  {l} slope: {s:+.4f}")
+        diff = abs(slopes[0] - slopes[1])
+        print(f"  Difference: {diff:.4f}")
+        if diff < 0.005:
+            print(f"  Slopes agree within 0.005 -- conclusion is not sensitive to grader choice.")
+        else:
+            print(f"  Slopes differ by {diff:.4f} -- grader choice may affect the conclusion.")
+    print()
+
+
+def main() -> None:
+    for group_name, grader_caches in COMPARISONS.items():
+        _analyze_group(group_name, grader_caches)
 
 
 if __name__ == "__main__":

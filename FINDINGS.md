@@ -166,7 +166,7 @@ Full results in `results/analysis-reports/phase-robustness-summary.txt`.
 
 ## Power analysis
 
-The power analysis tool was run against the actual study parameters (80 Monte Carlo simulations per cell, flip_probability=0.12) to determine the minimum detectable effect (MDE) at 80% power.
+The power analysis tool was run against the actual study parameters (80 Monte Carlo simulations per cell, flip_probability=0.12 from HIGH-only validation) to determine the minimum detectable effect (MDE) at 80% power. The flip rate corresponds to the grader's effective operating threshold (HIGH-only); power for MEDIUM-severity errors would be lower due to the higher flip rate at that threshold (0.286).
 
 **Minimum detectable effect at 80% power:**
 
@@ -219,7 +219,7 @@ TRAIL labels each error with impact LOW/MEDIUM/HIGH. Recomputing kappa at strict
 
 Reference fail counts: 395 (any) -> 326 (MEDIUM+) -> 148 (HIGH only), out of 954 total steps.
 
-At HIGH-only, four of five graders reach kappa ~0.45-0.50 (moderate agreement). The disagreement is concentrated on LOW-impact errors -- cosmetic issues (missing closing tags, typos, formatting) that don't change tool behavior. This pattern held across all 5 model families, suggesting it reflects something general about how LLMs judge errors rather than a quirk of any particular model. This is a calibration difference, not a capability failure.
+At HIGH-only, four of five graders reach kappa ~0.45-0.50 (moderate agreement). The disagreement is concentrated on LOW-impact errors -- cosmetic issues (missing closing tags, typos, formatting) that don't change tool behavior. This pattern held across all 5 model families, suggesting it reflects something general about how LLMs judge errors rather than a quirk of any particular model. This is a calibration difference, not a capability failure -- but it means the grader effectively operates at a HIGH-only threshold (73% false-negative rate at MEDIUM+), which is stricter than the MEDIUM+ boundary originally intended for the degradation analysis.
 
 ![Severity threshold](figures/severity_threshold.png)
 
@@ -233,13 +233,19 @@ Two rubric variants (v2, v2.1) were tested to align the grader's error threshold
 | MiniMax v2.1 | n=670 | 0.029 | - | 0.247 |
 | Kimi v1 | n=670 | 0.064 | 0.312 | 0.394 |
 
-**Rubric changes hurt validity agreement.** The severity exception caused the grader to under-flag real errors. **Frontier models do not improve grading** -- Kimi, Sonnet, and Gemini all underperformed MiniMax and Haiku. Self-consistency helped only at the HIGH threshold. The ensemble hypothesis (cross-family majority vote) did not beat the best single model at any threshold.
+**Rubric changes hurt validity agreement.** v2.1 added a single sentence to the fail definition: "missing closing tags, typos in non-functional text, and formatting issues that do not change tool behavior or agent reasoning are not failures." This was intended to align the grader with TRAIL's MEDIUM+ threshold. Instead, binary kappa collapsed from 0.202 to 0.029. The most likely explanation: "does not change tool behavior" is subjective, and the grader interpreted it as permission to downgrade many real errors to neutral, not just cosmetic ones. The exception gave the grader an escape hatch it used too aggressively.
+
+v2 changed three things simultaneously (severity exception, removed conservative bias, trimmed cross-step signals), making it impossible to isolate which change caused the damage. v2.1 isolated the severity exception alone and still failed, confirming that the cosmetic exception language itself is the problem.
+
+This has implications for the position-dependent accuracy findings. The v1 rubric's conservative bias ("default toward neutral", "tie-break downward") may be what keeps grader accuracy from degrading *faster* at later steps. Removing it (as v2 did) would likely worsen the position effect. The rubric's strictness is a feature, not a bug -- but it also means the grader systematically under-reports errors, which biases the degradation slope toward zero.
+
+**Frontier models do not improve grading** -- Kimi, Sonnet, and Gemini all underperformed MiniMax and Haiku. Self-consistency helped only at the HIGH threshold. The ensemble hypothesis (cross-family majority vote) did not beat the best single model at any threshold.
 
 ### Grader selection for degradation analysis
 
 - **Rubric**: v1 (unchanged -- iteration had negative returns)
-- **Error threshold**: MEDIUM+ (graders naturally calibrate to this level)
-- **Grader**: MiniMax, single sample. Kappa ~0.25 at MEDIUM+, ~0.49 at HIGH. Cheapest model matching Haiku-level accuracy.
+- **Error threshold**: effectively HIGH-only. The grader was initially described as calibrating to MEDIUM+, but position-specific validation showed a 73% false-negative rate at MEDIUM+ (91% at later steps). The grader reliably detects HIGH-severity errors (flip rate 0.12) and ignores most MEDIUM-severity ones.
+- **Grader**: MiniMax, single sample. Kappa ~0.49 at HIGH, ~0.25 at MEDIUM+. Cheapest model matching Haiku-level accuracy.
 - **Neutral**: retained as exploratory signal; primary claims use binary fail/not-fail
 
 ### Grader sensitivity test
@@ -255,7 +261,21 @@ The same 30 Nebius/Llama 70B traces (632 steps) were re-graded with Haiku to tes
 
 Combined with the position-dependent accuracy findings (both graders' kappa drops at later steps, but MiniMax's predicted error rate drops more sharply), this suggests MiniMax's null result may partly reflect its increasing conservatism at later steps rather than absence of degradation. The step-phase covariate absorbs some of Haiku's signal but not all -- 0.0140 remains significant after phase control, while MiniMax's confounded slope (0.0063) is fully absorbed.
 
-This does not establish that degradation is real -- Haiku's higher slope could reflect Haiku-specific calibration artifacts rather than true degradation. But it establishes that the null result is not robust across graders. See `scripts/run_nebius_haiku.py` and `scripts/compare_grader_sensitivity.py`.
+**Two-grader agreement analysis** (`scripts/grader_correction_analysis.py`) decomposed the divergence further. On the 82% of steps where MiniMax and Haiku agree on fail/not-fail, both graders produce a significant degradation slope:
+
+| Subset | MiniMax slope | Haiku slope |
+|---|---|---|
+| All steps | +0.0006 (p=0.68) | +0.0140 (p<0.0001) |
+| Binary-agree only (82%) | +0.0077 (p<0.0001) | +0.0070 (p<0.0001) |
+| Binary-disagree only (18%) | -0.0219 (p<0.0001) | -- |
+
+The graders converge on a degradation slope of ~+0.007 on steps they're confident about. MiniMax's overall null is produced by disagree-only steps having a massive negative slope (-0.022), driven by 60 late-step errors that Haiku detects and MiniMax misses (vs only 15 in the other direction). MiniMax's increasing conservatism at later steps cancels the degradation signal present in the agreement subset.
+
+**Position-specific flip rates** confirm the SIMEX correction is calibrated to the grader's actual operating threshold. The SIMEX parameter (0.12) corresponds to the HIGH-only flip rate (0.125), which is what the grader effectively detects. At the originally intended MEDIUM+ boundary the actual flip rate is 0.286 overall, rising from 0.242 (steps 0-4) to 0.364 (steps 5+), with a 73% false-negative rate overall and 91% at later steps. The grader misses the majority of MEDIUM-severity errors, confirming that it operates at a HIGH-only threshold regardless of intent.
+
+The practical consequence is that the study measures degradation of HIGH-severity errors only. MEDIUM-severity degradation -- if it exists -- is undetectable with this grader. The SIMEX correction (0.12) is valid for what the grader actually detects, but the study cannot make claims about error classes below the HIGH threshold.
+
+These findings do not establish that degradation is real -- the agree-only subset is not a random sample, and restricting to agreement steps introduces selection bias. But they establish that MiniMax's null result is produced by a specific mechanism (late-step conservatism canceling a real signal) rather than by absence of signal. See `scripts/run_nebius_haiku.py`, `scripts/compare_grader_sensitivity.py`, and `scripts/grader_correction_analysis.py`.
 
 ---
 
@@ -265,7 +285,7 @@ This does not establish that degradation is real -- Haiku's higher slope could r
 - **Context management varies by scaffolding and is unrecoverable from trajectory data.** Both SWE-agent and OpenHands have configurable context management (sliding windows, summarization), and the Multi-SWE-bench trajectories do not record which settings were used. If a framework silently drops context, the step_index axis no longer reflects how much context the model actually sees -- the null result could reflect the framework compensating rather than the model being robust. Auto-SWE was verified to preserve full context within each run. This limitation cannot be resolved without the original run configurations.
 - **Dataset and sample limitations.** 30-50 traces per configuration, mostly SWE-bench Python bug fixes. Earlier runs used streaming order (non-random); later runs introduced random sampling.
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished. Kappa values lack an interpretive anchor.
-- **Grader accuracy degrades with step position, and the null result is grader-dependent.** Validation against TRAIL by step-index bin shows binary kappa drops from 0.33 (steps 0-2) to 0.03-0.06 (steps 6+) for MiniMax, and from 0.35 to 0.02-0.10 for Haiku. Both graders increasingly miss errors at later steps, biasing the degradation slope toward zero. The SIMEX correction accounts for overall label noise but not position-dependent noise. A sensitivity test re-grading the same traces with Haiku found significant degradation (+0.0140, p<0.0001) that MiniMax does not detect (+0.0006, p=0.68). The null result may be partly a property of MiniMax's calibration rather than a robust finding. See `scripts/grader_accuracy_by_position.py` and `scripts/compare_grader_sensitivity.py`.
+- **The null result is produced by grader-specific late-step conservatism.** Two-grader agreement analysis shows both MiniMax and Haiku produce a +0.007 degradation slope on the 82% of steps they agree on. MiniMax's overall null is driven by 18% of steps where it misses errors Haiku catches -- concentrated at later positions (60 late-step errors Haiku finds that MiniMax doesn't, vs 15 the other direction). The grader effectively operates at a HIGH-only threshold (73% FNR at MEDIUM+), and the SIMEX correction (0.12) is calibrated to that operating point. The study measures HIGH-severity degradation only. See `scripts/grader_correction_analysis.py` and `scripts/compare_grader_sensitivity.py`.
 - **Improvement signals survive all available controls.** 4 of 6 improvement configs show genuine improvement robust to phase, complexity, and outcome controls. Outcome labels were backfilled for 2 SWE-agent configs; improvement persists in both successful and failed traces. Whether this is within-run adaptation or an uncontrolled confound (e.g., task structure) is unresolved. 2 of 6 are floor effects. See `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`.
 
 ## Raw output files
