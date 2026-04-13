@@ -242,6 +242,21 @@ Two rubric variants (v2, v2.1) were tested to align the grader's error threshold
 - **Grader**: MiniMax, single sample. Kappa ~0.25 at MEDIUM+, ~0.49 at HIGH. Cheapest model matching Haiku-level accuracy.
 - **Neutral**: retained as exploratory signal; primary claims use binary fail/not-fail
 
+### Grader sensitivity test
+
+The same 30 Nebius/Llama 70B traces (632 steps) were re-graded with Haiku to test whether the degradation slope is sensitive to grader choice.
+
+| Grader | Error rate | Slope (no phase) | Slope (with phase) | p-value |
+|---|---|---|---|---|
+| MiniMax | 26.1% | +0.0063 | +0.0006 | 0.68 |
+| Haiku | 29.9% | +0.0173 | +0.0140 | <0.0001 |
+
+**The null result is grader-dependent.** Haiku finds significant degradation (+0.0140/step, p<0.0001) that MiniMax does not (+0.0006, p=0.68), even after controlling for step phase. The graders also diverge on other coefficients: Haiku's phase effect is smaller (-0.18 vs -0.30) and its complexity coefficient is large and positive (+0.37 vs -0.06), indicating fundamentally different calibration.
+
+Combined with the position-dependent accuracy findings (both graders' kappa drops at later steps, but MiniMax's predicted error rate drops more sharply), this suggests MiniMax's null result may partly reflect its increasing conservatism at later steps rather than absence of degradation. The step-phase covariate absorbs some of Haiku's signal but not all -- 0.0140 remains significant after phase control, while MiniMax's confounded slope (0.0063) is fully absorbed.
+
+This does not establish that degradation is real -- Haiku's higher slope could reflect Haiku-specific calibration artifacts rather than true degradation. But it establishes that the null result is not robust across graders. See `scripts/run_nebius_haiku.py` and `scripts/compare_grader_sensitivity.py`.
+
 ---
 
 ## Unresolved concerns
@@ -250,7 +265,7 @@ Two rubric variants (v2, v2.1) were tested to align the grader's error threshold
 - **Context management varies by scaffolding and is unrecoverable from trajectory data.** Both SWE-agent and OpenHands have configurable context management (sliding windows, summarization), and the Multi-SWE-bench trajectories do not record which settings were used. If a framework silently drops context, the step_index axis no longer reflects how much context the model actually sees -- the null result could reflect the framework compensating rather than the model being robust. Auto-SWE was verified to preserve full context within each run. This limitation cannot be resolved without the original run configurations.
 - **Dataset and sample limitations.** 30-50 traces per configuration, mostly SWE-bench Python bug fixes. Earlier runs used streaming order (non-random); later runs introduced random sampling.
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished. Kappa values lack an interpretive anchor.
-- **Grader validated on short traces only.** Validation used TRAIL (~10 steps/trace). Analysis traces are 10-100 steps, and 42% of long-trace renders hit the prior-context cap. Grader accuracy as a function of prompt length has not been measured.
+- **Grader accuracy degrades with step position, and the null result is grader-dependent.** Validation against TRAIL by step-index bin shows binary kappa drops from 0.33 (steps 0-2) to 0.03-0.06 (steps 6+) for MiniMax, and from 0.35 to 0.02-0.10 for Haiku. Both graders increasingly miss errors at later steps, biasing the degradation slope toward zero. The SIMEX correction accounts for overall label noise but not position-dependent noise. A sensitivity test re-grading the same traces with Haiku found significant degradation (+0.0140, p<0.0001) that MiniMax does not detect (+0.0006, p=0.68). The null result may be partly a property of MiniMax's calibration rather than a robust finding. See `scripts/grader_accuracy_by_position.py` and `scripts/compare_grader_sensitivity.py`.
 - **Improvement signals survive all available controls.** 4 of 6 improvement configs show genuine improvement robust to phase, complexity, and outcome controls. Outcome labels were backfilled for 2 SWE-agent configs; improvement persists in both successful and failed traces. Whether this is within-run adaptation or an uncontrolled confound (e.g., task structure) is unresolved. 2 of 6 are floor effects. See `scripts/analyze_improvement.py` and `scripts/backfill_msb_outcome.py`.
 
 ## Raw output files

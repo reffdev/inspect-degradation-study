@@ -1,6 +1,6 @@
 # Do AI Agents Degrade Over Long Tasks?
 
-A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). Every apparent degradation signal turned out to be a measurement artifact.
+A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). Most apparent degradation signals turned out to be measurement artifacts -- but a grader sensitivity test found that the null result itself may be grader-dependent.
 
 ## The result
 
@@ -50,7 +50,7 @@ The classifier required framework-specific detection layers. Each framework has 
 
 ## What actually predicts step-level errors
 
-Step position is not a significant predictor in 14 of 15 configurations. What is:
+Step position is not a significant predictor in 14 of 15 configurations using MiniMax as the grader, though a [sensitivity test](FINDINGS.md#grader-sensitivity-test) with Haiku found a significant slope on the same data. What consistently predicts errors across both graders:
 
 - **What the agent is doing.** Action steps (edits, test runs) have 11-30pp higher error rates than exploration steps (reads, searches), p<0.0001 across all configurations. This is the dominant predictor.
 - **Model quality.** Error rates range from 2.1% (Qwen3-Coder) to 26% (Llama 70B). Claude 3.7 Sonnet sits at 4% on SWE-smith.
@@ -66,7 +66,7 @@ The primary contribution is the measurement methodology and reusable tooling, no
 
 Key caveats:
 - **No inter-human baseline.** TRAIL's inter-annotator agreement is unpublished.
-- **Grader validated on short traces only.** Validation used ~10 steps/trace; analysis traces run 10-100 steps with 42% hitting the prior-context cap.
+- **The null result is grader-dependent.** Re-grading the same 30 Nebius traces with Haiku instead of MiniMax produces a significant degradation slope (+0.0140, p<0.0001) that MiniMax does not detect (+0.0006, p=0.68). Both graders' accuracy degrades at later steps (kappa drops from ~0.33 to ~0.03), but MiniMax becomes more conservative (misses more errors) while Haiku retains more signal. See `scripts/compare_grader_sensitivity.py`.
 - **Context management is unknown for most scaffoldings.** SWE-agent and OpenHands both have configurable context management (sliding windows, summarization), and the trajectory data does not record which settings were used. If a framework silently drops context, the step_index axis becomes unreliable. This cannot be resolved from the data alone.
 - **The rubric has not been validated by human experts** independent of the TRAIL labels.
 - **Improvement signals survive available controls but are not fully explained.** 4 of 6 are substantive; 2 are floor effects. Outcome control does not reduce the signal. See [FINDINGS.md](FINDINGS.md#cross-dataset-summary).
