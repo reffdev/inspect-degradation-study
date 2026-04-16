@@ -1,35 +1,10 @@
 # Do AI Agents Degrade Over Long Tasks?
 
-A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). The short answer: degradation on 5 configurations, improvement on 2, null on 7 — and **which answer you get is sensitive to how the grader's context is instrumented**, enough that a plausible-looking 30K-character cap on the grader's prompt reversed direction of effect on 6 of 14 configurations once removed. The study's primary contributions are the measurement methodology, the resulting meta-finding about LLM-grader instrumentation, and a reusable tool.
+A statistical pipeline tested this across 15 configurations (8+ models, 4 scaffoldings, ~24,000 graded steps). The short answer: **degradation on 5 configurations, improvement on 2, null on 7.** Degradation is not model-specific — it appears across GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama. The dominant confound is phase composition (agents shift from exploration to action over a task), which attenuates slopes by roughly half but does not eliminate them. The study also characterizes two properties of the grading instrument — length-dependent accuracy and a construct mismatch with human reference labels — that affect any temporal analysis built on LLM-as-judge outputs. An initial run used a context cap that introduced position-correlated bias; all results reported here use full-context grading with parse-error steps excluded ([correction details](FINDINGS.md#methodology-correction-grader-context-truncation-2026-04-15)).
 
-## Headline result
+## Results
 
-Of 14 configurations re-graded under the corrected methodology (full grader context, parse-error steps excluded, Benjamini–Hochberg FDR across the family), **5 show statistically significant degradation** (3 survive BH correction), **2 show improvement** (1 cleanly, 1 raw-p only), and **7 are null**. Degradation appears across GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama — it is not model-specific. The long-trace follow-up (50 traces, 40+ steps each), designed specifically to test whether degradation appears under context-window pressure, produced +0.0007 errors/step, p<0.001 — 7pp additional error rate across a 100-step trace, non-negligible relative to the 26% baseline.
-
-## How a 30K-character cap reversed 6 configurations
-
-The first pass of this study reported a different result: "8 null, 6 improve, 1 degrades; most apparent degradation is a phase-composition artifact." Those numbers came from a grading pipeline that applied a 30,000-character budget to the grader's prior-step context for cost reasons. A late-stage audit measured how often the cap was hit per step index:
-
-- 0% of step-0 grader calls were truncated
-- 88% of step-25 grader calls were truncated
-- Across the 14 Phase 3 configurations, 4 exceeded 60% average truncation
-
-Truncated completions raised parse errors. The grader library silently converted parse errors to `Validity.neutral`. Neutral fallbacks concentrated at later positions. Any temporal signal flattened at the tail.
-
-Re-grading all 14 configurations with full context and filtering parse-error steps flipped direction of effect on 6:
-
-| Configuration | Capped (retracted) | Uncapped (current) |
-|---|---|---|
-| Long-trace follow-up (Llama, 40+ steps) | No effect, +0.0001 p=0.38 | **Degrades, +0.0007 p<0.001** |
-| MSB / GPT-4o / SWE-agent | Improves, p<0.0001 | **Degrades, +0.0025 p=0.001** |
-| MSB / Claude 3.5 Sonnet / OpenHands | Improves, p<0.0001 | **Degrades, +0.0029 p<0.001** |
-| MSB / Claude 3.7 Sonnet / OpenHands | Improves, p=0.007 | **Degrades, +0.0014 p=0.001** |
-| MSB / Claude 3.5 Sonnet / SWE-agent | Improves, p<0.0001 | No effect, +0.0010 p=0.12 |
-| Auto-SWE / Qwen3-Coder-Next | No effect, p=0.11 | Improves, -0.0009 p=0.034 |
-
-The cap's bias was asymmetric: it hid degradation on MSB and long traces, and hid improvement on Auto-SWE.
-
-The takeaway is not the specific flip count. It is that three independent safeguards all failed in the same direction. The library documented the cap as producing "uniform truncation" — measured rate was 0% at step 0 and 88% at step 25. A `.truncation.json` side-file recorded every truncation event but no analysis script read it. The parse-error path had a silent neutral fallback that absorbed the downstream damage. Cost-minded optimizations in a grading pipeline need the same instrumentation rigor as the measurements they enable. Details in [FINDINGS.md § Methodology correction](FINDINGS.md#methodology-correction-grader-context-truncation-2026-04-15).
+Of 14 configurations graded with full context (Benjamini–Hochberg FDR applied across the family), **5 show statistically significant degradation** (3 survive BH correction), **2 show improvement** (1 cleanly, 1 raw-p only), and **7 are null**. The long-trace follow-up (50 traces, 40+ steps each), designed specifically to test whether degradation appears under context-window pressure, produced +0.0007 errors/step, p<0.001 — 7pp additional error rate across a 100-step trace, non-negligible relative to the 26% baseline.
 
 ## Supporting findings
 

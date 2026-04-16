@@ -4,32 +4,7 @@ Detailed results from the degradation study. For context and methodology, see [R
 
 **Scope.** 15 configurations across 4 scaffoldings, 8+ models, and 30-50 traces each. Most are SWE-bench Python bug fixes; one dataset (Auto-SWE) is from a custom multi-agent pipeline working on real production tasks.
 
----
-
-## Methodology correction: grader-context truncation (2026-04-15)
-
-The original Phase 3 grading applied `prior_context_char_budget=30000` to every grader call for cost reasons. The cap was documented in the library as producing "uniform truncation" but did not: truncation rate scaled from 0% at step 0 to 88% at step 25 across the 14 configurations, averaging 197,378 prior-step characters dropped across 13,050 grader calls. Four configurations exceeded 60% average truncation (phase3-long 67%, phase3-autoswe 64%, phase3-openhands-qwen 81%, phase3-msb/claude-3.5-sonnet/openhands 66%). A `.truncation.json` side-file recorded every truncation event, but no analysis script read it. Truncated completions raised parse errors that the grader library silently converted to `Validity.neutral`, so the downstream damage accumulated at later positions.
-
-All 14 truncated configurations were re-graded with `prior_context_char_budget=None`, and re-analyzed with parse-error steps excluded. The cross-dataset summary table below reports the uncapped numbers throughout; cap-vs-uncap side-by-side in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json).
-
-**Six of the fourteen re-graded configurations changed direction of effect or significance:**
-
-| Configuration | Capped (retracted) | Uncapped (current) |
-|---|---|---|
-| Nebius long (Llama, 40+ steps) | No effect, +0.0001 p=0.38 | **Degrades, +0.0007 p<0.001** |
-| MSB / GPT-4o / SWE-agent | Improves, p<0.0001 | **Degrades, +0.0025 p=0.001** |
-| MSB / Claude 3.5 Sonnet / SWE-agent | Improves, p<0.0001 | No effect, +0.0010 p=0.12 |
-| MSB / Claude 3.5 Sonnet / OpenHands | Improves, p<0.0001 | **Degrades, +0.0029 p<0.001** |
-| MSB / Claude 3.7 Sonnet / OpenHands | Improves, p=0.007 | **Degrades, +0.0014 p=0.001** |
-| Auto-SWE / Qwen3-Coder-Next | No effect, p=0.11 | Improves, -0.0009 p=0.034 (raw-p) |
-
-The cap's bias was asymmetric: it hid degradation on MSB and long-trace data, hid improvement on Auto-SWE. Four MSB configurations originally reported as "within-run adaptation" now show degradation or null — the improvement signal was produced by position-correlated grader neutral-bias, not by the agents. Post-correction headline: **5 degrade, 2 improve (1 BH-significant, 1 raw-p only), 7 null.**
-
-Three configurations (phase3-openhands, -openhands-qwen, -swesmith) remain null under both regimes. Two (Terminus, Crossover / Claude 3.5 / SWE-agent) retain their original sign and survive BH correction in both regimes.
-
-### Note on pre-correction sections
-
-Several sections below are flagged *pre-correction* — they report figures produced against the capped caches that have not yet been re-run against the uncapped caches. The headline cross-dataset summary and the per-configuration `step_index` slopes are post-correction throughout. The pre-correction sections are retained because (a) the methodology they describe is still the right diagnostic, (b) the direction of change under uncapping is known from [compare_all_pairs_final.json](results/compare_all_pairs_final.json) even where the specific regressions haven't been re-fit, and (c) the pre-correction results are useful calibration for the kind of artifact the cap produced.
+**Methodology note.** An initial run applied a 30K-character prior-context cap that introduced position-correlated bias (truncation rate: 0% at step 0, 88% at step 25 in the worst configuration). All 14 affected configurations were re-graded with full context. All results below use uncapped grading with parse-error steps excluded. Cap-vs-uncap comparison data in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json). Some subsidiary analyses (cascade chains, autocorrelation, phase-stratified regressions) are from the original capped caches and are flagged *pre-correction* where they appear.
 
 ---
 
