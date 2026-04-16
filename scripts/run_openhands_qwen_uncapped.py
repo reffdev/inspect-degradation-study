@@ -18,7 +18,7 @@ from pathlib import Path
 # CONFIG
 # ---------------------------------------------------------------------------
 
-OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "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")
+OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "PASTE-API-KEY-HERE")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 DATASET = "nebius/SWE-rebench-openhands-trajectories"
