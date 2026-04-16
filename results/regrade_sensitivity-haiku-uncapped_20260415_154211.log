@@ -1,0 +1,6 @@
+2026-04-15 15:42:11,450 run_nebius_haiku INFO loading Nebius traces (models=['swe-agent-llama-70b'], limit=30)
+2026-04-15 15:42:17,322 inspect_degradation.datasets.nebius INFO nebius: loaded 30 traces (1 distinct models)
+2026-04-15 15:42:17,322 run_nebius_haiku INFO loaded 30 traces, 632 total steps
+2026-04-15 15:42:17,328 run_nebius_haiku INFO 30 traces already cached in E:\Projects\zerg\inspect-degradation-study\results\sensitivity-haiku-uncapped\haiku.cache.jsonl
+2026-04-15 15:42:17,328 run_nebius_haiku INFO grading 0 pending traces (30 cached, 30 total)
+2026-04-15 15:42:17,328 run_nebius_haiku INFO done: 0 graded this run (0 steps), 0 errors, 30 total in cache

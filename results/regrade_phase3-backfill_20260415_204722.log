@@ -1,0 +1,6 @@
+2026-04-15 20:47:22,370 run_nebius INFO loading Nebius traces (models=['swe-agent-llama-70b'], limit=30)
+2026-04-15 20:47:26,641 inspect_degradation.datasets.nebius INFO nebius: loaded 30 traces (1 distinct models)
+2026-04-15 20:47:26,641 run_nebius INFO loaded 30 traces, 632 total steps
+2026-04-15 20:47:26,652 run_nebius INFO 30 traces already cached in results\phase3-uncapped\minimax.cache.jsonl
+2026-04-15 20:47:26,652 run_nebius INFO grading 0 pending traces (30 cached, 30 total)
+2026-04-15 20:47:26,652 run_nebius INFO done: 0 graded this run (0 steps), 0 errors, 30 total in cache

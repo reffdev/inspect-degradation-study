@@ -1,0 +1,6 @@
+{
+  "grader": "minimax",
+  "dataset": "terminus-2 / GLM 4.7",
+  "n_graded": 50,
+  "n_errors": 0
+}

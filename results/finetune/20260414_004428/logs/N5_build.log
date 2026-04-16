@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/mnt/e/Projects/zerg/inspect-degradation-study/scripts/build_training_data.py", line 29, in <module>
+    from inspect_degradation.grader.rubric import Rubric
+  File "/mnt/e/Projects/zerg/inspect-degradation/src/inspect_degradation/grader/__init__.py", line 25, in <module>
+    from inspect_degradation.grader.llm import (
+  File "/mnt/e/Projects/zerg/inspect-degradation/src/inspect_degradation/grader/llm.py", line 42, in <module>
+    from tenacity import (
+ModuleNotFoundError: No module named 'tenacity'

@@ -1,0 +1,41 @@
+2026-04-15 15:16:51,229 run_openhands INFO loading OpenHands traces (limit=50)
+2026-04-15 15:16:59,977 inspect_degradation.datasets.openhands INFO openhands: loaded 50 traces (1 distinct models)
+2026-04-15 15:16:59,977 run_openhands INFO loaded 50 traces, 1126 total steps
+2026-04-15 15:16:59,981 run_openhands INFO 0 traces already cached
+2026-04-15 15:16:59,982 run_openhands INFO grading 50 pending traces
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_openhands_uncapped.py", line 122, in _run
+    await asyncio.gather(*(grade_one(t) for t in pending), return_exceptions=True)
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_openhands_uncapped.py", line 94, in grade_one
+    steps = await grader.grade_trace(trace)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\interface.py", line 149, in grade_trace
+    async with sem:
+               ^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\locks.py", line 14, in __aenter__
+    await self.acquire()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\locks.py", line 407, in acquire
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_openhands_uncapped.py", line 153, in <module>
+    main()
+    ~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_openhands_uncapped.py", line 149, in main
+    sys.exit(asyncio.run(_run()))
+             ~~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

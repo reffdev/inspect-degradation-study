@@ -1,0 +1,17 @@
+2026-04-15 15:22:56,325 run_nebius_haiku INFO loading Nebius traces (models=['swe-agent-llama-70b'], limit=30)
+2026-04-15 15:23:02,609 inspect_degradation.datasets.nebius INFO nebius: loaded 30 traces (1 distinct models)
+2026-04-15 15:23:02,610 run_nebius_haiku INFO loaded 30 traces, 632 total steps
+2026-04-15 15:23:02,614 run_nebius_haiku INFO 19 traces already cached in E:\Projects\zerg\inspect-degradation-study\results\sensitivity-haiku-uncapped\haiku.cache.jsonl
+2026-04-15 15:23:02,614 run_nebius_haiku INFO grading 11 pending traces (19 cached, 30 total)
+2026-04-15 15:23:56,039 run_nebius_haiku INFO [haiku] 1/11 done (26 steps, 0 errors so far)
+2026-04-15 15:23:56,831 run_nebius_haiku INFO [haiku] 2/11 done (28 steps, 0 errors so far)
+2026-04-15 15:23:58,618 run_nebius_haiku INFO [haiku] 3/11 done (29 steps, 0 errors so far)
+2026-04-15 15:23:58,778 run_nebius_haiku INFO [haiku] 4/11 done (22 steps, 0 errors so far)
+2026-04-15 15:24:08,552 run_nebius_haiku INFO [haiku] 5/11 done (32 steps, 0 errors so far)
+2026-04-15 15:24:15,895 run_nebius_haiku INFO [haiku] 6/11 done (35 steps, 0 errors so far)
+2026-04-15 15:24:24,722 run_nebius_haiku INFO [haiku] 7/11 done (40 steps, 0 errors so far)
+2026-04-15 15:24:33,181 run_nebius_haiku INFO [haiku] 8/11 done (41 steps, 0 errors so far)
+2026-04-15 15:24:35,227 run_nebius_haiku INFO [haiku] 9/11 done (44 steps, 0 errors so far)
+2026-04-15 15:24:44,749 run_nebius_haiku INFO [haiku] 10/11 done (46 steps, 0 errors so far)
+2026-04-15 15:25:01,735 run_nebius_haiku INFO [haiku] 11/11 done (57 steps, 0 errors so far)
+2026-04-15 15:25:01,735 run_nebius_haiku INFO done: 11 graded this run (400 steps), 0 errors, 30 total in cache

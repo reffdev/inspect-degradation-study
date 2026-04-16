@@ -1,0 +1,21 @@
+{
+  "grader": "minimax",
+  "dataset": "Auto-SWE",
+  "stage": "implement",
+  "n_graded": 61,
+  "n_errors": 0,
+  "models_seen": [
+    "Qwen3-Coder-Next",
+    "Qwen3-Coder-REAP-363B-A35B-UD-Q4_K_XL-00001-of-00005.gguf",
+    "Qwen3.5-122B-A10B",
+    "z-ai/glm-5",
+    "minimax/minimax-m2.7"
+  ],
+  "truncation": {
+    "n_renders": 1903,
+    "n_truncations": 0,
+    "rate": 0.0,
+    "total_steps_dropped": 0,
+    "mean_dropped_per_truncation": 0.0
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "grader": "haiku",
+  "grader_model": "openai/anthropic/claude-haiku-4.5",
+  "rubric": "step_grader_v1",
+  "nebius_models": [
+    "swe-agent-llama-70b"
+  ],
+  "trace_limit": 30,
+  "n_loaded": 30,
+  "n_cached_prior": 30,
+  "n_graded_this_run": 0,
+  "n_errors": 0,
+  "n_total_cached": 30,
+  "prior_context_char_budget": null,
+  "purpose": "grader sensitivity test (Haiku vs MiniMax)"
+}

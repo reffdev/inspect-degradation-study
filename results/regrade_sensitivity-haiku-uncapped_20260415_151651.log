@@ -1,0 +1,54 @@
+2026-04-15 15:16:51,277 run_nebius_haiku INFO loading Nebius traces (models=['swe-agent-llama-70b'], limit=30)
+2026-04-15 15:17:00,229 inspect_degradation.datasets.nebius INFO nebius: loaded 30 traces (1 distinct models)
+2026-04-15 15:17:00,229 run_nebius_haiku INFO loaded 30 traces, 632 total steps
+2026-04-15 15:17:00,234 run_nebius_haiku INFO 0 traces already cached in E:\Projects\zerg\inspect-degradation-study\results\sensitivity-haiku-uncapped\haiku.cache.jsonl
+2026-04-15 15:17:00,234 run_nebius_haiku INFO grading 30 pending traces (0 cached, 30 total)
+2026-04-15 15:17:18,451 run_nebius_haiku INFO [haiku] 1/30 done (4 steps, 0 errors so far)
+2026-04-15 15:17:25,471 run_nebius_haiku INFO [haiku] 2/30 done (5 steps, 0 errors so far)
+2026-04-15 15:17:30,895 run_nebius_haiku INFO [haiku] 3/30 done (6 steps, 0 errors so far)
+2026-04-15 15:17:37,990 run_nebius_haiku INFO [haiku] 4/30 done (8 steps, 0 errors so far)
+2026-04-15 15:17:40,524 run_nebius_haiku INFO [haiku] 5/30 done (8 steps, 0 errors so far)
+2026-04-15 15:17:41,013 run_nebius_haiku INFO [haiku] 6/30 done (8 steps, 0 errors so far)
+2026-04-15 15:17:47,384 run_nebius_haiku INFO [haiku] 7/30 done (9 steps, 0 errors so far)
+2026-04-15 15:17:47,447 run_nebius_haiku INFO [haiku] 8/30 done (9 steps, 0 errors so far)
+2026-04-15 15:17:47,724 run_nebius_haiku INFO [haiku] 9/30 done (10 steps, 0 errors so far)
+2026-04-15 15:17:53,651 run_nebius_haiku INFO [haiku] 10/30 done (12 steps, 0 errors so far)
+2026-04-15 15:17:54,246 run_nebius_haiku INFO [haiku] 11/30 done (12 steps, 0 errors so far)
+2026-04-15 15:18:00,101 run_nebius_haiku INFO [haiku] 12/30 done (13 steps, 0 errors so far)
+2026-04-15 15:18:01,803 run_nebius_haiku INFO [haiku] 13/30 done (12 steps, 0 errors so far)
+2026-04-15 15:18:03,442 run_nebius_haiku INFO [haiku] 14/30 done (13 steps, 0 errors so far)
+2026-04-15 15:18:20,650 run_nebius_haiku INFO [haiku] 15/30 done (18 steps, 0 errors so far)
+2026-04-15 15:18:24,541 run_nebius_haiku INFO [haiku] 16/30 done (21 steps, 0 errors so far)
+2026-04-15 15:18:27,081 run_nebius_haiku INFO [haiku] 17/30 done (21 steps, 0 errors so far)
+2026-04-15 15:18:28,527 run_nebius_haiku INFO [haiku] 18/30 done (21 steps, 0 errors so far)
+2026-04-15 15:18:28,888 run_nebius_haiku INFO [haiku] 19/30 done (22 steps, 0 errors so far)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_nebius_haiku_uncapped.py", line 160, in _run
+    results = await asyncio.gather(
+              ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_nebius_haiku_uncapped.py", line 211, in <module>
+    main()
+    ~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_nebius_haiku_uncapped.py", line 207, in main
+    sys.exit(asyncio.run(_run()))
+             ~~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

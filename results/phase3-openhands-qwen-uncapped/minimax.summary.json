@@ -1,0 +1,6 @@
+{
+  "grader": "minimax",
+  "dataset": "nebius/SWE-rebench-openhands-trajectories",
+  "n_graded": 30,
+  "n_errors": 0
+}

@@ -1,0 +1,147 @@
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1151, in emit
+    msg = self.format(record)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 999, in format
+    return fmt.format(record)
+           ~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 712, in format
+    record.message = record.getMessage()
+                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 400, in getMessage
+    msg = msg % self.args
+          ~~~~^~~~~~~~~~~
+TypeError: not enough arguments for format string
+Call stack:
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 188, in <module>
+    main()
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 184, in main
+    sys.exit(asyncio.run(_run()))
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 2050, in _run_once
+    handle._run()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 76, in _run
+    log.info(
+Message: 'loading Auto-SWE traces (granularity=%s, stages=%s, limit=%s)'
+Arguments: ('data/autoswe-implement-traces.jsonl', None)
+2026-04-15 15:22:56,277 inspect_degradation.datasets.autoswe INFO autoswe-jsonl: loaded 61 traces
+2026-04-15 15:22:56,277 run_autoswe INFO loaded 61 traces, 1903 total steps, models: {'Qwen3-Coder-Next', 'minimax/minimax-m2.7', 'z-ai/glm-5', 'Qwen3.5-122B-A10B', 'Qwen3-Coder-REAP-363B-A35B-UD-Q4_K_XL-00001-of-00005.gguf'}
+2026-04-15 15:22:56,284 run_autoswe INFO 0 traces already cached
+2026-04-15 15:22:56,284 run_autoswe INFO grading 61 pending traces
+2026-04-15 15:30:51,992 run_autoswe INFO [minimax] 1/61 done (7 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:30:52,321 run_autoswe INFO [minimax] 2/61 done (7 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:31:09,326 run_autoswe INFO [minimax] 3/61 done (8 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:31:17,601 run_autoswe INFO [minimax] 4/61 done (7 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:31:19,767 run_autoswe INFO [minimax] 5/61 done (9 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:31:20,375 run_autoswe INFO [minimax] 6/61 done (9 steps, [implement] Qwen3-Coder-Next, 0 errors)
+2026-04-15 15:32:27,021 run_autoswe INFO [minimax] 7/61 done (10 steps, [implement] Qwen3-Coder-Next, 0 errors)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 149, in _run
+    await asyncio.gather(*(grade_one(t) for t in pending), return_exceptions=True)
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 119, in grade_one
+    steps = await grader.grade_trace(trace)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\interface.py", line 157, in grade_trace
+    results.append(await self.grade_step(ctx))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\llm.py", line 165, in grade_step
+    return await self._grade_step_inner(ctx)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\llm.py", line 191, in _grade_step_inner
+    return await self._grade_single(ctx, prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\llm.py", line 228, in _grade_single
+    completion, response = await self._generate_and_parse_with_retry(prompt)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\llm.py", line 376, in _generate_and_parse_with_retry
+    async for attempt in AsyncRetrying(
+    ...<17 lines>...
+            return completion, response
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\asyncio\__init__.py", line 170, in __anext__
+    do = await self.iter(retry_state=self._retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py", line 393, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+                                     ~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\grader\llm.py", line 385, in _generate_and_parse_with_retry
+    output = await self._resolved_model.generate(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        messages, config=gen_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\inspect_ai\model\_model.py", line 589, in generate
+    async with self._connection_concurrency(config):
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\inspect_ai\model\_model.py", line 1140, in _connection_concurrency
+    async with concurrency(
+               ~~~~~~~~~~~^
+        name=str(model_name),
+        ^^^^^^^^^^^^^^^^^^^^^
+        concurrency=max_connections,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        key=f"Model{self.api.connection_key()}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\inspect_ai\util\_concurrency.py", line 105, in concurrency
+    async with sample_waiting_for(semaphore.semaphore):
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\inspect_ai\_util\working.py", line 78, in sample_waiting_for
+    async with semaphore:
+               ^^^^^^^^^
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\anyio\_core\_synchronization.py", line 406, in __aenter__
+    await self.acquire()
+  File "C:\Users\alexr\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\anyio\_backends\_asyncio.py", line 1911, in acquire
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 188, in <module>
+    main()
+    ~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_implement_uncapped.py", line 184, in main
+    sys.exit(asyncio.run(_run()))
+             ~~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

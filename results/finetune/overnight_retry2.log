@@ -1,0 +1,8 @@
+[overnight] run root: results/finetune/20260414_005844
+[overnight] start: 2026-04-14T00:58:44-05:00
+
+==============================================
+[overnight] N=3 starting at 2026-04-14T00:58:44-05:00
+==============================================
+[overnight] step 1/3: build data
+[overnight] step 2/3: train

@@ -31,3 +31,11 @@ Thumbs.db
 
 # Environment
 .env
+/unsloth_compiled_cache
+
+/results/finetune/20260415_004820/adapter_N3/checkpoints
+/results/finetune/20260415_004820/adapter_N5/checkpoints
+/results/finetune/20260415_004820/adapter_N8/checkpoints
+/results/finetune/20260415_004820/adapter_N3/adapter
+/results/finetune/20260415_004820/adapter_N5/adapter
+/results/finetune/20260415_004820/adapter_N8/adapter

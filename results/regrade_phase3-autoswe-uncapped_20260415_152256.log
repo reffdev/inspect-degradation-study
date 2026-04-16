@@ -1,0 +1,26 @@
+2026-04-15 15:22:56,250 run_autoswe INFO loading Auto-SWE traces (granularity=run, stages=None, limit=50)
+Traceback (most recent call last):
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_uncapped.py", line 194, in <module>
+    main()
+    ~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_uncapped.py", line 190, in main
+    sys.exit(asyncio.run(_run()))
+             ~~~~~~~~~~~^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "E:\Projects\zerg\inspect-degradation-study\scripts\run_autoswe_uncapped.py", line 80, in _run
+    traces = load_autoswe(
+        DB_PATH,
+    ...<7 lines>...
+        seed=SEED,
+    )
+  File "E:\Projects\zerg\inspect-degradation\src\inspect_degradation\datasets\autoswe.py", line 93, in load_autoswe
+    raise FileNotFoundError(f"Database not found: {db_path}")
+FileNotFoundError: Database not found: auto-swe.db

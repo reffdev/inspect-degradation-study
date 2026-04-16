@@ -1,0 +1,7 @@
+[prep] scanning 11 graded-cache files
+[prep] nebius traces with graded steps: 75
+[prep] loading raw Nebius traces (HF stream, filtering to 75 needed)...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[prep] matched raw traces: 66 / 75
+[prep] split: 53 train traces / 13 val traces
+[prep] wrote 2524 train / 634 val examples to results/finetune/20260414_005116/data_N5
