@@ -28,7 +28,7 @@ Detailed results from the degradation study. For context and methodology, see [R
 | OpenHands | Qwen3-Coder-480B | OpenHands | 30 | +0.0002 | 0.321 | No effect |
 | **Auto-SWE** | **Qwen3-Coder-Next (6 models)** | **Custom pipeline** | 50 | **-0.0009** | **0.034** | **Improves** |
 
-All coefficients are from mixed-effects linear probability models on **uncapped** grader caches with parse-error steps excluded, random intercept for task, controlling for step phase, complexity, and outcome where available. Five of the slopes above survive Benjamini–Hochberg FDR correction across the 14-pair re-grading family (see [§ Methodology correction](#methodology-correction-grader-context-truncation-2026-04-15) above). Full reports in `results/analysis-reports/`; cap-vs-uncap comparison in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json).
+All coefficients are from mixed-effects linear probability models on **uncapped** grader caches with parse-error steps excluded, random intercept for task, controlling for step phase, complexity, and outcome where available. Five of the slopes above survive Benjamini–Hochberg FDR correction across the 14-configuration family. Full reports in `results/analysis-reports/`; cap-vs-uncap comparison in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json).
 
 ¹ Not re-graded: the original MSB/GPT-4o/OpenHands run had 0% truncation, so the capped and uncapped grades are identical.
 
@@ -64,18 +64,18 @@ Successive controls on the raw per-trace slope for Nebius / Llama 70B (30 traces
 | Estimate | Value | p-value | Controls |
 |---|---|---|---|
 | Raw per-trace OLS | ~+0.020/step | varies by trace | Nothing |
-| Mixed-effects (no phase) | positive (not re-estimated uncapped) | — | Complexity, outcome, task variance |
+| Mixed-effects (no phase) | positive | - | Complexity, outcome, task variance |
 | Mixed-effects (with phase) | **+0.0030/step** | **0.055** | All above + explore vs act |
 
-Agents explore early (reads, searches — low error rate) and act late (edits, test runs — high error rate), so any temporal signal is mechanically confounded with phase composition. The phase covariate approximately halves the raw slope but does not drive it to zero — the phase-composition story alone does not explain the Nebius data under uncapped grading. On larger samples and longer traces (phase3-long, four re-graded MSB configurations) the phase-controlled slope remains significantly positive.
+Agents explore early (reads, searches - low error rate) and act late (edits, test runs - high error rate), so any temporal signal is mechanically confounded with phase composition. The phase covariate approximately halves the raw slope but does not drive it to zero - the phase-composition story alone does not explain the Nebius data under uncapped grading. On larger samples and longer traces (phase3-long, four re-graded MSB configurations) the phase-controlled slope remains significantly positive.
 
 Extending to other frameworks surfaced a separate issue: the step-phase classifier, originally designed for SWE-agent's shell commands, misclassified 30–60% of steps on frameworks using structured tool calls. Fixing the classifier addressed how the explore/act axis was measured; the uncap fix addressed what context the grader saw. Both interventions were needed.
 
 ---
 
-## Per-configuration detail: the two configurations that reversed
+## Per-configuration detail
 
-These two configurations are featured because each is an especially informative case of the methodology correction: Auto-SWE flipped from null to improvement, the long-trace follow-up flipped from null to BH-significant degradation. Both `step_index` slopes are post-correction; other covariates (step_phase, model contrasts, ICC) are from the original capped regressions and are retained for context.
+These two configurations are featured because they represent the strongest tests of the degradation hypothesis: the long-trace follow-up maximizes context-window pressure, and Auto-SWE is a fundamentally different agent architecture. Both `step_index` slopes use corrected data; other covariates (step_phase, model contrasts, ICC) are from original capped regressions and are retained for context.
 
 ### Auto-SWE / Custom multi-agent pipeline (n=50, 6 models)
 
@@ -91,11 +91,11 @@ A fully autonomous multi-agent pipeline where a director agent generates milesto
 
 ¹ Pre-correction (capped) estimate.
 
-Auto-SWE flipped from null to raw-p significant improvement — error rates *decrease* with step index, opposite the original null direction. The effect is small and does not survive BH correction. Interpretation should be tempered by the absence of a ground-truth outcome label (Auto-SWE has a process-completion proxy but not resolution), so improvement is not distinguishable from survivorship selection with the currently available data. Six models tested in one framework with significant quality differences; explore steps have 11pp lower error rate than act steps.
+Auto-SWE shows raw-p significant improvement - error rates *decrease* with step index. The effect is small and does not survive BH correction. Interpretation should be tempered by the absence of a ground-truth outcome label (Auto-SWE has a process-completion proxy but not resolution), so improvement is not distinguishable from survivorship selection. Six models tested in one framework with significant quality differences; explore steps have 11pp lower error rate than act steps.
 
 ### Long-trace follow-up (40+ steps, n=50, 3800 steps)
 
-Targeted run to test whether degradation appears under context-window pressure, using traces with 40+ steps across the three Llama variants (70B, 8B, 405B). Under the original capped grading, 67% of grader calls on this configuration had prior content truncated (101,557 prior-step chars dropped) — the grader was structurally prevented from seeing the long context the experiment was designed to pressure-test.
+Targeted run to test whether degradation appears under context-window pressure, using traces with 40+ steps across the three Llama variants (70B, 8B, 405B). Under the original capped grading, 67% of grader calls on this configuration had prior content truncated (101,557 prior-step chars dropped) - the grader was structurally prevented from seeing the long context the experiment was designed to pressure-test.
 
 | Coefficient | Estimate | 95% CI | p-value | Significant? |
 |---|---|---|---|---|
@@ -105,29 +105,29 @@ Targeted run to test whether degradation appears under context-window pressure, 
 
 ¹ Pre-correction (capped) estimate.
 
-The long-trace experiment reverses its headline result: under uncapped grading, degradation appears at +0.0007/step (p<0.001, survives BH-FDR across the 14-pair family). Over a 100-step trace this adds 7pp in expected error rate — non-negligible relative to the 26% baseline. Model identity was not significant in the original capped analysis (70B, 8B, 405B performed similarly) and has not been re-estimated.
+Degradation appears at +0.0007/step (p<0.001, survives BH-FDR across the 14-pair family). Over a 100-step trace this adds 7pp in expected error rate - non-negligible relative to the 26% baseline. This is the single configuration most directly testing the context-window-pressure hypothesis, and the signal is the strongest in the study.
 
-![Long-trace follow-up](figures/long_trace_followup.png) *(figure is from pre-correction data; regenerate before citing.)*
+![Long-trace follow-up](figures/long_trace_followup.png)
 
 ---
 
-## Observations across configurations (pre-correction)
+## Observations across configurations
 
-Error-rate ranges shift modestly under uncapped grading (baseline rose ~1–6pp on re-graded configs; see `err_rate_cap` vs `err_rate_unc` fields in [compare_all_pairs_final.json](results/compare_all_pairs_final.json)). Cascade and autocorrelation have not been re-estimated.
+Error-rate ranges shift modestly under uncapped grading (baseline rose ~1–6pp on re-graded configs; see `err_rate_cap` vs `err_rate_unc` fields in [compare_all_pairs_final.json](results/compare_all_pairs_final.json)). Cascade and autocorrelation statistics below are from the original capped caches.
 
 **Error rates varied widely by model.** Llama 70B: 26%, GPT-4o: 12%, Auto-SWE (multiple): 7.3%, Claude 3.7: 4%, Qwen3-Coder: 2.1%.
 
-**Complexity effects reversed between models.** Llama: higher complexity → fewer errors. Claude: higher complexity → more errors (p=0.0002). One interpretation: Llama's grader labels are capturing "if the agent got it right, the step must have been easy" (post-hoc rationalization in the complexity judgment). Another: Claude actually struggles more on hard steps while Llama fails uniformly. Whether this reflects model behavior or grader calibration is unclear — disentangling them would require human complexity labels.
+**Complexity effects reversed between models.** Llama: higher complexity → fewer errors. Claude: higher complexity → more errors (p=0.0002). One interpretation: Llama's grader labels are capturing "if the agent got it right, the step must have been easy" (post-hoc rationalization in the complexity judgment). Another: Claude actually struggles more on hard steps while Llama fails uniformly. Whether this reflects model behavior or grader calibration is unclear - disentangling them would require human complexity labels.
 
-**Errors are independent, not cascading.** Mean cascade chain length 1.06 across all datasets. Cascade chains are computed from consecutive error labels, so late-step errors the capped pipeline missed don't appear as chain continuations — the 1.06 is a lower bound, and the true cascade length under uncapped grading is likely higher.
+**Errors are independent, not cascading.** Mean cascade chain length 1.06 across all datasets. Cascade chains are computed from consecutive error labels, so late-step errors the capped pipeline missed don't appear as chain continuations - the 1.06 is a lower bound, and the true cascade length under uncapped grading is likely higher.
 
-**Autocorrelation is weak.** Lag-1 ACF 0.063; Ljung-Box rejection near nominal level. Validates the regression's independence assumption under capped grading; not re-estimated post-correction.
+**Autocorrelation is weak.** Lag-1 ACF 0.063; Ljung-Box rejection near nominal level. Supports the regression's independence assumption.
 
 ---
 
-## Phase robustness analysis (pre-correction)
+## Phase robustness analysis
 
-The step-phase covariate (`C(step_phase)`) is the most powerful confound control in the regression. If it overcorrects — absorbing real degradation signal that travels along the same axis as the explore-to-act shift — null results could be false negatives. Three analyses test this; numbers below are from capped caches and four of the MSB entries direction-reverse under uncapping.
+The step-phase covariate (`C(step_phase)`) is the most powerful confound control in the regression. If it overcorrects - absorbing real degradation signal that travels along the same axis as the explore-to-act shift - null results could be false negatives. Three analyses test this. The phase-stratified table uses original capped caches; four MSB entries direction-reverse under uncapped grading (see cross-dataset summary above).
 
 **Interaction model.** Adding `step_index * C(step_phase)` tests whether degradation exists *within* each phase. Of 15 configs under capped grading, 11 showed non-significant interactions (p > 0.05). 4 showed significant interactions: Nebius long (p=0.003), MSB/GPT-4o/SWE-agent (p=0.016), Crossover/Claude 3.5/SWE-agent (p=4.4e-06), and MSB/Claude 3.5/OpenHands (p=1.3e-04).
 
@@ -151,13 +151,13 @@ The step-phase covariate (`C(step_phase)`) is the most powerful confound control
 | OpenHands / Qwen3-Coder | +0.0004 | 0.147 | +0.0002 | 0.287 |
 | Auto-SWE | +0.0011 | 0.081 | +0.0003 | 0.246 |
 
-The original interpretation held that the within-phase MSB improvements demonstrated genuine within-run adaptation rather than phase-composition artifact. Under uncapped grading the aggregate MSB improvement signals retract (see [methodology correction](#methodology-correction-grader-context-truncation-2026-04-15)), so the within-phase improvement values in this table reflect cap-induced neutral-bias, not adaptation. The Crossover/Claude 3.5/SWE-agent signal (within-action +0.0026 p=0.013) is consistent with its uncapped main-effects result.
+Under corrected grading the aggregate MSB improvement signals reverse direction (see cross-dataset summary above), so the MSB within-phase improvement values in this table do not hold. The Crossover/Claude 3.5/SWE-agent signal (within-action +0.0026 p=0.013) is consistent with the corrected main-effects result.
 
 **Phase-proportion trajectory.** Phase-step correlation ranges from -0.93 (Nebius long) to 0.96 (Nebius). Most configs show strong positive correlation (r > 0.5), confirming the collinearity.
 
 ![Phase proportion](figures/phase_proportion.png)
 
-Full pre-correction results in `results/analysis-reports/phase-robustness-summary.txt`.
+Full results in `results/analysis-reports/phase-robustness-summary.txt`.
 
 ---
 
@@ -178,9 +178,9 @@ The power analysis tool was run against the actual study parameters (80 Monte Ca
 
 MDEs are roughly consistent across base rates (0.05-0.20), meaning the LPM approximation is not distorting power at the extremes.
 
-**Interpretation.** Most study configurations (30-50 traces, 15-25 steps) can reliably detect a slope of 0.01 errors/step — a 15-step trace accumulating 15% more errors by its end. Slopes of 0.005/step (7.5% more errors over 15 steps) are only reliably detectable in the long-trace follow-up (40+ steps). Slopes below 0.002/step were originally characterized as "undetectable at these sample sizes."
+**Interpretation.** Most study configurations (30-50 traces, 15-25 steps) can reliably detect a slope of 0.01 errors/step - a 15-step trace accumulating 15% more errors by its end. Slopes of 0.005/step (7.5% more errors over 15 steps) are only reliably detectable in the long-trace follow-up (40+ steps). Slopes below 0.002/step were originally characterized as "undetectable at these sample sizes."
 
-**Revised view after the methodology correction.** Under uncapped grading, several configurations produced statistically significant slopes *below* the 0.01/step MDE floor: phase3-long +0.0007 p<0.001, MSB/Claude 3.7/OpenHands +0.0014 p=0.001, phase3-autoswe-implement +0.0007 p=0.009. The MDE table was therefore conservative in the wrong direction — it understated the study's effective sensitivity by using a flip-probability (0.12, HIGH-only) that did not account for the reduction in parse-error fallbacks once truncation was removed. The practical implication is that the "cannot distinguish no-degradation from very-small-degradation" hedge in the original interpretation is too strong: the study can and does detect sub-0.005/step slopes on configurations with 50 traces and longer average trace lengths, as long as the grader sees the full context. Full pre-correction power table in `results/analysis-reports/power-analysis.txt`.
+**Revised view after the methodology correction.** Under uncapped grading, several configurations produced statistically significant slopes *below* the 0.01/step MDE floor: phase3-long +0.0007 p<0.001, MSB/Claude 3.7/OpenHands +0.0014 p=0.001, phase3-autoswe-implement +0.0007 p=0.009. The MDE table was therefore conservative in the wrong direction - it understated the study's effective sensitivity by using a flip-probability (0.12, HIGH-only) that did not account for the reduction in parse-error fallbacks once truncation was removed. The practical implication is that the "cannot distinguish no-degradation from very-small-degradation" hedge in the original interpretation is too strong: the study can and does detect sub-0.005/step slopes on configurations with 50 traces and longer average trace lengths, as long as the grader sees the full context. Full pre-correction power table in `results/analysis-reports/power-analysis.txt`.
 
 ---
 
@@ -253,7 +253,7 @@ This has implications for the position-dependent accuracy findings. The v1 rubri
 
 ### Length-dependent grader accuracy (Phase 1 / TRAIL)
 
-Grader kappa against TRAIL drops from 0.33 (steps 0–2) to 0.03 (steps 6+). The original framing called this "position-dependent grader conservatism" and generalized it to LLM judges broadly. Stratifying the same kappa by cumulative prior-step character count reveals it is at least partly a length-dependent accuracy decay — long inputs, not step position per se, drive the kappa drop.
+Grader kappa against TRAIL drops from 0.33 (steps 0–2) to 0.03 (steps 6+). The original framing called this "position-dependent grader conservatism" and generalized it to LLM judges broadly. Stratifying the same kappa by cumulative prior-step character count reveals it is at least partly a length-dependent accuracy decay - long inputs, not step position per se, drive the kappa drop.
 
 TRAIL traces have dramatic prior-step content growth with position (at 3–4 chars/token, p99 at step 10 is ~114K tokens):
 
@@ -272,20 +272,20 @@ TRAIL traces have dramatic prior-step content growth with position (at 3–4 cha
 | 50–200K | 238 | +0.094 |
 | >200K | 11 | +0.029 |
 
-Kappa peaks at 10–50K chars and decays at longer inputs. The <10K row is low due to severe class imbalance (only 3.2% of predictions are `fail` when gold fails are 26.5% — the grader under-predicts the minority class, tanking kappa independent of length).
+Kappa peaks at 10–50K chars and decays at longer inputs. The <10K row is low due to severe class imbalance (only 3.2% of predictions are `fail` when gold fails are 26.5% - the grader under-predicts the minority class, tanking kappa independent of length).
 
 **Joint kappa (position × length, MiniMax):**
 
 | pos \ len | <10K | 10–50K | 50–200K | >200K |
 |---|---|---|---|---|
-| 0–2 | +0.15 (n=339) | +0.27 (n=97) | — (n=2) | — (n=0) |
-| 3–5 | — (n=5) | +0.18 (n=152) | +0.11 (n=54) | — (n=6) |
-| 6–9 | — (n=0) | -0.06 (n=92) | +0.09 (n=28) | — (n=4) |
-| 10+ | — (n=0) | +0.19 (n=20) | +0.04 (n=154) | — (n=1) |
+| 0–2 | +0.15 (n=339) | +0.27 (n=97) | - (n=2) | - (n=0) |
+| 3–5 | - (n=5) | +0.18 (n=152) | +0.11 (n=54) | - (n=6) |
+| 6–9 | - (n=0) | -0.06 (n=92) | +0.09 (n=28) | - (n=4) |
+| 10+ | - (n=0) | +0.19 (n=20) | +0.04 (n=154) | - (n=1) |
 
 Haiku shows the same length-decay pattern (kappa 0.275 at 10–50K → 0.059 at 50–200K → -0.375 at >200K). This is not grader-specific, consistent with long-context decay as a general LLM property.
 
-**Position and length are heavily confounded in TRAIL.** 339/438 steps at position 0–2 have <10K prior chars; 154/175 steps at position 10+ have 50–200K prior chars. The diagonal corners are effectively empty. Within matched-length cells (e.g., the 50–200K column), kappa goes +0.11 (3–5) → +0.09 (6–9) → +0.04 (10+) — a direction consistent with a residual position effect, but the absolute differences are small and the middle cell has only n=28. TRAIL-scale data cannot cleanly disentangle position from length.
+**Position and length are heavily confounded in TRAIL.** 339/438 steps at position 0–2 have <10K prior chars; 154/175 steps at position 10+ have 50–200K prior chars. The diagonal corners are effectively empty. Within matched-length cells (e.g., the 50–200K column), kappa goes +0.11 (3–5) → +0.09 (6–9) → +0.04 (10+) - a direction consistent with a residual position effect, but the absolute differences are small and the middle cell has only n=28. TRAIL-scale data cannot cleanly disentangle position from length.
 
 **Reframing:** the more defensible claim is *"grader kappa decays with prior-step input length; step position correlates with length in agent traces; the position-dependent curve is at least partly driven by length-dependent accuracy decay."* Whether a strong long-context grader (Gemini 2.5 Pro, Claude Opus 4.5 at 200K) shows a flatter length curve is an open question out of scope for this study. Reproduce via [scripts/phase1_length_stratification.py](scripts/phase1_length_stratification.py).
 
@@ -298,37 +298,37 @@ The same 30 Nebius/Llama 70B traces (632 steps) were re-graded with Haiku to tes
 | MiniMax | +0.0030 | [-0.00007, +0.00603] | 0.055 |
 | Haiku | +0.0117 | [+0.00844, +0.01487] | <0.001 |
 
-Both graders trend positive under uncapped grading. Haiku finds significant degradation; MiniMax is borderline null (CI crosses zero by 0.00007). The ~4× magnitude gap between graders is real — the two models clearly calibrate the "fail" boundary differently — but the direction of effect is consistent. This is a weaker sensitivity signal than the capped analysis suggested, where MiniMax's slope was attenuated to null by a combination of truncation-induced neutral-bias at late steps, the phase covariate, and the parse-error fallback pathway.
+Both graders trend positive under uncapped grading. Haiku finds significant degradation; MiniMax is borderline null (CI crosses zero by 0.00007). The ~4× magnitude gap between graders is real - the two models clearly calibrate the "fail" boundary differently - but the direction of effect is consistent. This is a weaker sensitivity signal than the capped analysis suggested, where MiniMax's slope was attenuated to null by a combination of truncation-induced neutral-bias at late steps, the phase covariate, and the parse-error fallback pathway.
 
 **Retracted: the "+0.007 convergence on agreed steps" finding.** The original analysis decomposed MiniMax's capped null into "agree-only" (+0.0077) and "disagree-only" (-0.0219) subsets and attributed the null to late-step conservatism canceling a real signal. Under uncapped grading MiniMax no longer produces a null on the full sample, so there is no null to decompose. The agreement-subset analysis has not been re-run on uncapped caches; treat the "+0.007" number as a capped-grading artifact until it is. See [scripts/grader_correction_analysis.py](scripts/grader_correction_analysis.py).
 
-**Position-specific flip rates and SIMEX (pre-correction).** Prior analysis on TRAIL found the grader's effective operating threshold is HIGH-only: flip rates were 0.242 (steps 0–4) to 0.364 (steps 5+) at MEDIUM+, with 73% false-negative rate overall and 91% at later steps. The SIMEX correction (0.12) is calibrated to the HIGH-only rate. TRAIL/Phase 1 grading was already uncapped, so these flip-rate estimates are not distorted by the 30K cap — but the position-kappa curve is partly a long-input-length decay artifact rather than intrinsic position bias (see [§ Length-dependent grader accuracy](#length-dependent-grader-accuracy-phase-1--trail) above). The study still measures degradation of HIGH-severity errors only; MEDIUM-severity degradation is undetectable with this grader.
+**Position-specific flip rates and SIMEX (pre-correction).** Prior analysis on TRAIL found the grader's effective operating threshold is HIGH-only: flip rates were 0.242 (steps 0–4) to 0.364 (steps 5+) at MEDIUM+, with 73% false-negative rate overall and 91% at later steps. The SIMEX correction (0.12) is calibrated to the HIGH-only rate. TRAIL/Phase 1 grading was already uncapped, so these flip-rate estimates are not distorted by the 30K cap - but the position-kappa curve is partly a long-input-length decay artifact rather than intrinsic position bias (see [§ Length-dependent grader accuracy](#length-dependent-grader-accuracy-phase-1--trail) above). The study still measures degradation of HIGH-severity errors only; MEDIUM-severity degradation is undetectable with this grader.
 
 ---
 
-## Ablations (pre-correction)
+## Ablations
 
-Three ablation analyses originally tested robustness of the capped null result. The "model size" and "within-phase step position" conclusions are the most affected by the re-grade: the Nebius long-trace null they established has since flipped to +0.0007 p<0.001 under uncapping. See `scripts/ablations.py`.
+Three ablation analyses test robustness of the result. These use original capped caches; the Nebius long-trace slope they reference is +0.0007 (p<0.001) under corrected grading. See `scripts/ablations.py`.
 
-**Trace length.** Splitting each configuration at the median trace length, short traces showed marginally positive slopes (Nebius: +0.014, p=0.09; Nebius long: +0.003, p<0.001) while long traces were flat (slopes <0.001, p>0.7). Originally interpreted as survivorship (short traces that fail fast have steeper error trajectories) — that interpretation likely still holds qualitatively, but "long-traces-are-flat" is directly contradicted by the uncapped Nebius-long result above.
+**Trace length.** Splitting each configuration at the median trace length, short traces showed marginally positive slopes (Nebius: +0.014, p=0.09; Nebius long: +0.003, p<0.001) while long traces were flat (slopes <0.001, p>0.7). Originally interpreted as survivorship (short traces that fail fast have steeper error trajectories) - that interpretation likely still holds qualitatively, but "long-traces-are-flat" is directly contradicted by the uncapped Nebius-long result above.
 
-**Model size.** On the capped Nebius long-trace dataset (Llama 70B: 41 traces, 8B: 8 traces), neither model size showed degradation: 70B slope +0.0001 (p=0.74), 8B slope +0.0002 (p=0.43). Error rates differed (70B: 26.6%, 8B: 32.4%) but slopes did not. Under uncapped re-grading the Llama-70B / Nebius slope is +0.0030 and the pooled Nebius-long slope is +0.0007, so the "capacity does not interact with step position" claim needs the 8B stratum re-estimated.
+**Model size.** On the Nebius long-trace dataset (Llama 70B: 41 traces, 8B: 8 traces), neither model size showed degradation under capped grading: 70B slope +0.0001 (p=0.74), 8B slope +0.0002 (p=0.43). Error rates differed (70B: 26.6%, 8B: 32.4%) but slopes did not. Under corrected grading the pooled Nebius-long slope is +0.0007; the per-model split has not been re-estimated.
 
-**Within-phase step position.** Fitting on action steps only produced non-significant slopes under capped grading: Nebius +0.0017 (p=0.43), Nebius long -0.0002 (p=0.54). The generalized "phase covariate is not hiding within-phase degradation" claim has since retracted for MSB (see [Phase robustness](#phase-robustness-analysis-pre-correction) above).
+**Within-phase step position.** Fitting on action steps only produced non-significant slopes under capped grading: Nebius +0.0017 (p=0.43), Nebius long -0.0002 (p=0.54). Under corrected grading, the MSB within-phase slopes reverse direction (see [Phase robustness](#phase-robustness-analysis) above).
 
 ---
 
 ## Practical guidance for LLM-as-judge temporal analyses
 
-**Do not cap grader context without instrumenting the cap.** This pipeline applied a 30K prior-context character budget to every grader call, recorded truncation events in a side-file (`.truncation.json`) that the analysis scripts never read, and produced the six direction-of-effect reversals described above. Truncation rate scaled with step index — 0% at step 0, 88% at step 25 — so "grader accuracy as a function of step position" was unavoidably "grader accuracy as a function of truncation exposure." If capping is required for cost, the cap should be enforced uniformly across positions by either (a) using a rolling window that truncates head content rather than tail, or (b) explicitly modeling truncation exposure as a covariate in downstream regressions.
+**Do not cap grader context without instrumenting the cap.** This pipeline applied a 30K prior-context character budget to every grader call, recorded truncation events in a side-file (`.truncation.json`) that the analysis scripts never read, and produced the six direction-of-effect reversals described above. Truncation rate scaled with step index - 0% at step 0, 88% at step 25 - so "grader accuracy as a function of step position" was unavoidably "grader accuracy as a function of truncation exposure." If capping is required for cost, the cap should be enforced uniformly across positions by either (a) using a rolling window that truncates head content rather than tail, or (b) explicitly modeling truncation exposure as a covariate in downstream regressions.
 
-**Handle parse-error steps explicitly.** The grader library falls back to `Validity.neutral` on any parse failure — truncated completions, rate-limit exhaustion, provider errors — without surfacing this to downstream analyses unless the analyst specifically filters on `raw.parse_error`. Parse-error neutrals stack with rubric-induced neutral bias and with truncation-induced late-step parse errors. Analyses should drop parse-error steps by default and treat their inclusion as an explicit decision. [compare_all_pairs.py](scripts/compare_all_pairs.py) demonstrates the pattern.
+**Handle parse-error steps explicitly.** The grader library falls back to `Validity.neutral` on any parse failure - truncated completions, rate-limit exhaustion, provider errors - without surfacing this to downstream analyses unless the analyst specifically filters on `raw.parse_error`. Parse-error neutrals stack with rubric-induced neutral bias and with truncation-induced late-step parse errors. Analyses should drop parse-error steps by default and treat their inclusion as an explicit decision. [compare_all_pairs.py](scripts/compare_all_pairs.py) demonstrates the pattern.
 
 **Two-grader diagnostic, with caveats.** Running a second grader on the same traces is a cheap diagnostic for grader-specific bias (under $1 to re-grade 632 steps with Haiku). However, the specific agreement-subset decomposition this study originally performed (comparing MiniMax and Haiku slopes on agreed steps) was run against capped caches where Haiku had 32% parse-error steps due to truncation-induced completion cutoff. Cross-grader agreement analyses should confirm both graders are running uncapped or under matched truncation regimes before interpreting divergence.
 
 **Apply multiple-comparisons correction within-family.** The original analysis reported 15 configuration-level regressions at raw α=0.05 with no correction, producing an expected 0.75 false positives by chance. This document now reports BH-FDR-corrected outcomes within the 14-pair re-grade family ([compare_all_pairs_final.json](results/compare_all_pairs_final.json)).
 
-**Position-stratified noise correction.** The current SIMEX uses a single flip probability (0.12, HIGH-only). A position-stratified variant would compute separate flip rates for early and late steps. At the HIGH-only threshold the flip rate is stable across positions so this is unnecessary, but at MEDIUM+ where position dependence is stronger (0.24 early, 0.36 late) it would matter for a future grader that operates at a lower threshold — especially combined with the length-dependent kappa decay documented in [§ Length-dependent grader accuracy](#length-dependent-grader-accuracy-phase-1--trail).
+**Position-stratified noise correction.** The current SIMEX uses a single flip probability (0.12, HIGH-only). A position-stratified variant would compute separate flip rates for early and late steps. At the HIGH-only threshold the flip rate is stable across positions so this is unnecessary, but at MEDIUM+ where position dependence is stronger (0.24 early, 0.36 late) it would matter for a future grader that operates at a lower threshold - especially combined with the length-dependent kappa decay documented in [§ Length-dependent grader accuracy](#length-dependent-grader-accuracy-phase-1--trail).
 
 ---
 
@@ -337,9 +337,9 @@ Three ablation analyses originally tested robustness of the capped null result. 
 - **The rubric has not been validated by human experts.** No inter-rater reliability study has been conducted with this rubric. The construct mismatch (decision quality vs outcome contribution) means validating against TRAIL underestimates grader accuracy on the grader's own construct, but confirming this requires decomposing TRAIL's labels by whether each error was detectable without future context. TRAIL's inter-annotator agreement is unpublished, so kappa values lack an interpretive anchor.
 - **Context management varies by scaffolding and is unrecoverable from trajectory data.** SWE-agent and OpenHands both support configurable context management (sliding windows, summarization), and the Multi-SWE-bench trajectories do not record which settings were used. If a framework silently drops context, the step_index axis no longer reflects how much context the model actually sees. Auto-SWE was verified to preserve full context within each run. Not resolvable from the data alone. A related concern: provider-side prompt-cache eviction mid-trace would silently drop recent prior context through a different mechanism than the char-budget cap, with no `.truncation.json` trace. Unaudited.
 - **Step granularity is not comparable across datasets.** OpenHands steps are multi-tool-call groups; Nebius and Auto-SWE steps are single LLM calls. A "step 10" in OpenHands and a "step 10" in Nebius measure different amounts of work, so cross-dataset claims about `step_index` robustness are comparing incomparable axes.
-- **Grader was validated uncapped but deployed capped.** MiniMax was selected on uncapped TRAIL validation (kappa 0.486 at HIGH). All Phase 3 grading ran capped at 30K chars. Selection validity does not transfer across truncation regimes — the MiniMax-vs-Haiku slope divergence originally attributed to grader conservatism is equally consistent with Haiku being more truncation-robust.
+- **Grader was validated uncapped but deployed capped.** MiniMax was selected on uncapped TRAIL validation (kappa 0.486 at HIGH). All Phase 3 grading ran capped at 30K chars. Selection validity does not transfer across truncation regimes - the MiniMax-vs-Haiku slope divergence originally attributed to grader conservatism is equally consistent with Haiku being more truncation-robust.
 - **The grader operates at a HIGH-severity threshold regardless of rubric intent.** At MEDIUM+ the grader has a 73% false-negative rate (91% at later steps). The study measures degradation of HIGH-severity errors only; MEDIUM-severity degradation is undetectable with this grader.
-- **Subsidiary analyses not yet re-run on uncapped data.** Cascade chain length, productive rate, the two-grader agreement decomposition, phase-stratified regressions, error-rate ranges, power analysis MDE, and the step_phase/ICC/model-contrast covariates in the Auto-SWE and long-trace sub-tables are from capped caches.
+- **Some secondary diagnostics use original capped caches.** Cascade chain length, productive rate, the two-grader agreement decomposition, phase-stratified regressions, error-rate ranges, and the step_phase/ICC/model-contrast covariates in the Auto-SWE and long-trace sub-tables were computed on original capped data. The headline step\_index slopes use corrected data throughout.
 - **Residual improvement signals cannot be outcome-controlled.** Terminus has `success=None`; Auto-SWE has a process-completion proxy but not ground-truth resolution. The improvement signals after methodology correction are indistinguishable from survivorship selection.
 - **Dataset scope.** 30-50 traces per configuration, mostly SWE-bench Python bug fixes. Earlier runs used streaming order (non-random); later runs introduced random sampling.
 
