@@ -132,7 +132,6 @@ async def _run() -> int:
         len(traces),
     )
 
-    sem = grader._semaphore
     completed = 0
     errors = 0
 

@@ -21,10 +21,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
+import os
 from pathlib import Path
 
-import numpy as np
 
 from inspect_degradation.analysis.frame import traces_to_frame
 from inspect_degradation.analysis.mixed_effects import fit_step_level_model
@@ -33,7 +32,9 @@ from inspect_degradation.store import GradedTraceStore
 from inspect_degradation.validation.agreement import pair_grades
 
 STUDY_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TRAIL_ROOT = Path(r"E:\Projects\zerg\trail-benchmark\benchmarking")
+DEFAULT_TRAIL_ROOT = Path(
+    os.environ.get("TRAIL_ROOT", "./trail-benchmark/benchmarking")
+).resolve()
 
 
 def main() -> None:
@@ -83,7 +84,7 @@ def main() -> None:
         print(f"  Binary agree (fail/not-fail): {len(agree_binary)} ({len(agree_binary)/len(common_keys):.0%})")
 
         # Agreement by step position
-        print(f"\n  Agreement rate by step position:")
+        print("\n  Agreement rate by step position:")
         print(f"  {'Bin':>6} {'N':>5} {'Agree%':>8} {'Binary agree%':>14}")
         print(f"  {'-'*6} {'-'*5} {'-'*8} {'-'*14}")
 
@@ -105,7 +106,7 @@ def main() -> None:
         df_disagree = df_mm[df_mm["_key"].isin(common_keys - agree_binary)].drop(columns=["_key"])
         df_mm = df_mm.drop(columns=["_key"])
 
-        print(f"\n  Regression slopes (MiniMax labels):")
+        print("\n  Regression slopes (MiniMax labels):")
         for subset_name, subset_df in [("All steps", df_mm),
                                         ("Binary-agree only", df_agree),
                                         ("Binary-disagree only", df_disagree)]:
@@ -130,7 +131,7 @@ def main() -> None:
         df_hk_agree = df_hk[df_hk["_key"].isin(agree_binary)].drop(columns=["_key"])
         df_hk = df_hk.drop(columns=["_key"])
 
-        print(f"\n  Regression slopes (Haiku labels):")
+        print("\n  Regression slopes (Haiku labels):")
         for subset_name, subset_df in [("All steps", df_hk),
                                         ("Binary-agree only", df_hk_agree)]:
             if subset_df["trace_id"].nunique() < 2 or len(subset_df) < 10:
@@ -149,14 +150,14 @@ def main() -> None:
                 print(f"    {subset_name}: error ({exc})")
 
         # What do they disagree ON?
-        print(f"\n  Disagreement patterns (binary):")
+        print("\n  Disagreement patterns (binary):")
         mm_fail_hk_not = {k for k in common_keys - agree_binary if mm_labels[k] == "fail"}
         hk_fail_mm_not = {k for k in common_keys - agree_binary if hk_labels[k] == "fail"}
         print(f"    MiniMax=fail, Haiku=not-fail: {len(mm_fail_hk_not)}")
         print(f"    Haiku=fail, MiniMax=not-fail: {len(hk_fail_mm_not)}")
 
         # Position distribution of disagreements
-        print(f"\n  Disagreement direction by position:")
+        print("\n  Disagreement direction by position:")
         print(f"  {'Bin':>6} {'MM=fail,HK=not':>15} {'HK=fail,MM=not':>15}")
         print(f"  {'-'*6} {'-'*15} {'-'*15}")
         for lo, hi, label in bins:
@@ -256,15 +257,15 @@ def main() -> None:
         late_high_rate = late_high_flips / len(late_pairs) if late_pairs else 0
 
         print(f"\n  SIMEX implications ({grader_name}):")
-        print(f"    Binary (any error) flip rates:")
+        print("    Binary (any error) flip rates:")
         print(f"      Early (steps 0-4): {early_flip_rate:.3f}  Late (steps 5+): {late_flip_rate:.3f}")
-        print(f"    HIGH-only flip rates (SIMEX calibration threshold):")
+        print("    HIGH-only flip rates (SIMEX calibration threshold):")
         print(f"      Early (steps 0-4): {early_high_rate:.3f}  Late (steps 5+): {late_high_rate:.3f}")
-        print(f"    SIMEX parameter: 0.12 (matches HIGH-only overall = 0.125)")
+        print("    SIMEX parameter: 0.12 (matches HIGH-only overall = 0.125)")
         if late_high_rate < early_high_rate:
-            print(f"    HIGH-only flip rate decreases at later steps -- grader improves")
-            print(f"    on HIGH-severity detection. Position-dependent kappa drop is")
-            print(f"    driven by LOW/MEDIUM disagreements the grader correctly ignores.")
+            print("    HIGH-only flip rate decreases at later steps -- grader improves")
+            print("    on HIGH-severity detection. Position-dependent kappa drop is")
+            print("    driven by LOW/MEDIUM disagreements the grader correctly ignores.")
 
     print()
 

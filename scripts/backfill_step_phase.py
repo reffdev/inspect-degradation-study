@@ -128,7 +128,7 @@ def _backfill_one(cache_path: str, source_type: str, kwargs: dict) -> None:
     print(f"  Matched {matched}/{len(trace_ids)} traces from source")
 
     if matched == 0:
-        print(f"  SKIP (no source matches)")
+        print("  SKIP (no source matches)")
         return
 
     n_changed = 0
@@ -160,7 +160,7 @@ def _backfill_one(cache_path: str, source_type: str, kwargs: dict) -> None:
     print(f"  {n_changed}/{n_total} steps changed, {n_missing} missing source")
 
     if n_changed == 0:
-        print(f"  No changes needed")
+        print("  No changes needed")
         return
 
     # Show distribution.
@@ -208,14 +208,13 @@ def main() -> None:
         if first is None:
             print("Empty cache")
             return
-        source = first.source
         # Find matching entry.
         for cp, st, kw in _CACHE_MAP:
             if Path(cp).resolve() == Path(cache_path).resolve():
                 source_type, kwargs = st, kw
                 break
         else:
-            print(f"Unknown cache path — use --all or add to _CACHE_MAP")
+            print("Unknown cache path — use --all or add to _CACHE_MAP")
             return
         _backfill_one(cache_path, source_type, kwargs)
 

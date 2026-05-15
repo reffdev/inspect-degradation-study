@@ -23,7 +23,7 @@ from pathlib import Path
 # CONFIG
 # ---------------------------------------------------------------------------
 
-OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "PASTE-YOUR-API-KEY-HERE")
+OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "not-set")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Filter to long traces only.
@@ -142,7 +142,7 @@ async def _run() -> int:
             return None
 
     results = await asyncio.gather(*(grade_one(t) for t in pending), return_exceptions=True)
-    graded_traces = [r for r in results if isinstance(r, GradedTrace)]
+    [r for r in results if isinstance(r, GradedTrace)]
 
     log.info(
         "done: %d graded, %d errors, %d total in cache",

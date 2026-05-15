@@ -1,11 +1,12 @@
 """Run compare_cap_vs_uncap on every (capped, uncapped) cache pair and
 summarize which paper conclusions flip.
 
-For each of the 9 pairs (phase3 Nebius, 7 Phase-3 sibling runs, sensitivity-haiku),
-runs the same mixed-effects regression on capped and uncapped caches, tracks
-the step_index slope in both regimes, flags conclusion-flips, and applies
-Benjamini-Hochberg FDR correction across the 9 capped p-values and 9 uncapped
-p-values separately.
+For each pair (phase3 Nebius, the Phase-3 sibling runs, the MSB and
+Crossover configurations, and the sensitivity-haiku re-grade — see the
+``PAIRS`` list below for the canonical set), runs the same mixed-effects
+regression on capped and uncapped caches, tracks the step_index slope in
+both regimes, flags conclusion-flips, and applies Benjamini-Hochberg FDR
+correction across the capped p-values and uncapped p-values separately.
 
 Usage:
     python scripts/compare_all_pairs.py
@@ -65,8 +66,12 @@ def _bh_fdr(p_values: list[float], alpha: float = 0.05) -> list[bool]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-exclude-parse-errors", action="store_true")
-    ap.add_argument("--json-out", type=Path, default=None,
-                    help="Also write full results as JSON to this path")
+    ap.add_argument(
+        "--json-out",
+        type=Path,
+        default=STUDY_ROOT / "results" / "compare_all_pairs_final.json",
+        help="Path for the full JSON report. Defaults to results/compare_all_pairs_final.json — the file FINDINGS.md references.",
+    )
     args = ap.parse_args()
     exclude_pe = not args.no_exclude_parse_errors
 
@@ -140,19 +145,24 @@ def main() -> int:
         if r.get("status") != "ok":
             print(f"  {r['pair']:<30} | {r.get('status', '?'):<28} | {'':<28} |")
             continue
-        c = r["capped"]; u = r["uncapped"]
+        c = r["capped"]
+        u = r["uncapped"]
+
         def fmt(coef, bh_reject):
-            if coef["est"] is None: return "n/a"
+            if coef["est"] is None:
+                return "n/a"
             flag = ""
-            if coef["sig"]: flag = "*"
-            if bh_reject: flag = "**"  # survives BH
+            if coef["sig"]:
+                flag = "*"
+            if bh_reject:
+                flag = "**"  # survives BH
             return f"{coef['est']:+.4f} p={coef['p']:.3f} {flag}"
         flip = "FLIP" if c["sig"] != u["sig"] else ""
         print(f"  {r['pair']:<30} | {fmt(c, r.get('bh_fdr_reject_cap', False)):<28} | {fmt(u, r.get('bh_fdr_reject_unc', False)):<28} | {flip:<8}")
 
     print()
     print("  Legend: *  raw-p significant at 0.05 (CI excludes 0)")
-    print("          ** survives BH-FDR correction at 0.05 across the 9-pair family")
+    print(f"          ** survives BH-FDR correction at 0.05 across the {len(PAIRS)}-pair family")
     print()
 
     print("=" * 115)

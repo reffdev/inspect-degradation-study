@@ -1,5 +1,19 @@
-inspect-degradation
-numpy
-pandas
-scipy
-matplotlib
+# Analysis-pipeline requirements for inspect-degradation-study.
+#
+# These are the package versions used to produce the results in
+# results/. Re-running the analysis scripts on these exact versions
+# is the supported reproducibility path; later compatible versions
+# will usually work but we have not tested them.
+#
+# Tested under Python 3.10–3.13.
+
+inspect-degradation[datasets]==0.1.0
+
+numpy>=2.0,<3.0
+pandas>=2.1,<3.0
+scipy>=1.11,<2.0
+matplotlib>=3.8,<4.0
+scikit-learn>=1.4,<2.0
+statsmodels>=0.14,<1.0
+lifelines>=0.27,<1.0
+ruptures>=1.1,<2.0

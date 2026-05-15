@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import os
 from pathlib import Path
 
 from inspect_degradation.datasets.trail import load_trail
@@ -33,7 +34,9 @@ from inspect_degradation.store import GradedTraceStore
 from inspect_degradation.validation.agreement import pair_grades
 
 STUDY_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TRAIL_ROOT = Path(r"E:\Projects\zerg\trail-benchmark\benchmarking")
+DEFAULT_TRAIL_ROOT = Path(
+    os.environ.get("TRAIL_ROOT", "./trail-benchmark/benchmarking")
+).resolve()
 
 
 def _is_medium_plus_fail(pair) -> bool:
@@ -119,9 +122,9 @@ def _export(trail_root: Path, output: Path, n: int, seed: int) -> None:
             f.write(json.dumps(r) + "\n")
 
     print(f"Exported to {output}")
-    print(f"For each step, add a 'hindsight_class' field:")
-    print(f"  'decision_time' = error detectable without future steps")
-    print(f"  'hindsight' = error only identifiable with future context")
+    print("For each step, add a 'hindsight_class' field:")
+    print("  'decision_time' = error detectable without future steps")
+    print("  'hindsight' = error only identifiable with future context")
     print(f"Then run: python scripts/classify_false_negatives.py --check {output}")
 
 
@@ -149,12 +152,12 @@ def _check(path: Path) -> None:
 
     if n_hindsight > n_decision:
         print(f"Majority ({n_hindsight/total:.0%}) require hindsight.")
-        print(f"The construct mismatch explains most of the false-negative rate.")
-        print(f"The grader's true accuracy on decision-quality is higher than kappa suggests.")
+        print("The construct mismatch explains most of the false-negative rate.")
+        print("The grader's true accuracy on decision-quality is higher than kappa suggests.")
     else:
         print(f"Majority ({n_decision/total:.0%}) detectable at decision time.")
-        print(f"The grader is genuinely missing errors it should catch.")
-        print(f"The kappa values accurately reflect grader failure.")
+        print("The grader is genuinely missing errors it should catch.")
+        print("The kappa values accurately reflect grader failure.")
 
     # By severity
     for sev in ["medium", "high"]:
@@ -183,12 +186,12 @@ def _interactive(trail_root: Path, n: int, seed: int) -> None:
 
     results = []
     print(f"\nClassifying {len(sample)} false negatives interactively.")
-    print(f"For each step, you see ONLY the task goal, prior steps, and current step.")
-    print(f"You do NOT see future steps. Classify as:")
-    print(f"  d = detectable at decision time (you can see the error)")
-    print(f"  h = requires hindsight (you cannot see the error)")
-    print(f"  s = skip")
-    print(f"  q = quit\n")
+    print("For each step, you see ONLY the task goal, prior steps, and current step.")
+    print("You do NOT see future steps. Classify as:")
+    print("  d = detectable at decision time (you can see the error)")
+    print("  h = requires hindsight (you cannot see the error)")
+    print("  s = skip")
+    print("  q = quit\n")
 
     for i, pair in enumerate(sample):
         ctx = _get_trace_context(pair, corpus)
@@ -196,7 +199,7 @@ def _interactive(trail_root: Path, n: int, seed: int) -> None:
         print(f"{'='*70}")
         print(f"[{i+1}/{len(sample)}] trace={pair.trace_id[:40]} step={pair.step_index}")
         print(f"TRAIL: fail ({pair.reference.severity.value}), Grader: {pair.predicted.validity.value}")
-        print(f"\nTASK GOAL:")
+        print("\nTASK GOAL:")
         print(f"  {ctx['task_goal'][:300]}")
         print(f"\nPRIOR STEPS (last {len(ctx['prior_steps'])}):")
         for s in ctx["prior_steps"]:

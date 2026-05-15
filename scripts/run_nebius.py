@@ -19,7 +19,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 # OpenRouter credentials.
-OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "PASTE-YOUR-API-KEY-HERE")
+OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "not-set")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Which models from the Nebius dataset to load.
@@ -125,7 +125,6 @@ async def _run() -> int:
         len(traces),
     )
 
-    sem = grader._semaphore
     completed = 0
     errors = 0
 

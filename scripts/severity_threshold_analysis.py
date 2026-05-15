@@ -23,11 +23,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
 from inspect_degradation.datasets.trail import (
-    SEVERITY_MAP,
     _SPLIT_CONFIG,
     _adapt_record,
     _read_json,
@@ -36,7 +34,6 @@ from inspect_degradation.schema import (
     HUMAN_GRADER,
     GradedStep,
     GradedTrace,
-    SeverityLevel,
     Validity,
 )
 from inspect_degradation.store import GradedTraceStore

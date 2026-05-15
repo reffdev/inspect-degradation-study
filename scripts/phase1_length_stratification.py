@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
+import os
 from pathlib import Path
 
 from inspect_degradation.datasets.trail import load_trail
@@ -33,7 +34,9 @@ from inspect_degradation.store import GradedTraceStore
 from inspect_degradation.validation.agreement import pair_grades
 
 STUDY_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TRAIL_ROOT = Path(r"E:\Projects\zerg\trail-benchmark\benchmarking")
+DEFAULT_TRAIL_ROOT = Path(
+    os.environ.get("TRAIL_ROOT", "./trail-benchmark/benchmarking")
+).resolve()
 
 GRADER_CACHES = {
     "MiniMax": "results/phase1/minimax.cache.jsonl",
@@ -58,7 +61,7 @@ def _cohen_kappa(y_true: list, y_pred: list) -> float:
     labels = sorted(set(y_true) | set(y_pred))
     if len(labels) < 2:
         return 1.0 if y_true == y_pred else 0.0
-    idx = {l: i for i, l in enumerate(labels)}
+    idx = {lbl: i for i, lbl in enumerate(labels)}
     k = len(labels)
     m = [[0] * k for _ in range(k)]
     for t, p in zip(y_true, y_pred):
@@ -171,7 +174,8 @@ def main() -> None:
 
         # --- Joint: position × length ---
         print("\n  Joint kappa by POSITION × LENGTH (cell shows kappa / n):")
-        header = f"  {'pos\\len':>8}"
+        _pos_len_label = "pos\\len"
+        header = f"  {_pos_len_label:>8}"
         for _, _, llab in LENGTH_BINS:
             header += f" {llab:>12}"
         print(header)
@@ -191,7 +195,8 @@ def main() -> None:
 
         # --- Joint N map: how populated each cell is ---
         print("\n  Cell counts (where kappa might not be computable):")
-        header = f"  {'pos\\len':>8}"
+        _pos_len_label = "pos\\len"
+        header = f"  {_pos_len_label:>8}"
         for _, _, llab in LENGTH_BINS:
             header += f" {llab:>12}"
         print(header)

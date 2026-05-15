@@ -18,7 +18,7 @@ from pathlib import Path
 # CONFIG
 # ---------------------------------------------------------------------------
 
-OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "PASTE-YOUR-API-KEY-HERE")
+OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "not-set")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 JSONL_PATH = "data/autoswe-implement-traces.jsonl"

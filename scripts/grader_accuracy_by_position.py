@@ -16,16 +16,18 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
-import numpy as np
 
 from inspect_degradation.datasets.trail import load_trail
 from inspect_degradation.store import GradedTraceStore
 from inspect_degradation.validation.agreement import pair_grades
 
 STUDY_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TRAIL_ROOT = Path(r"E:\Projects\zerg\trail-benchmark\benchmarking")
+DEFAULT_TRAIL_ROOT = Path(
+    os.environ.get("TRAIL_ROOT", "./trail-benchmark/benchmarking")
+).resolve()
 
 GRADER_CACHES = {
     "MiniMax": "results/phase1/minimax.cache.jsonl",
@@ -43,7 +45,7 @@ def _cohen_kappa(y_true: list, y_pred: list) -> float:
         return 1.0 if y_true == y_pred else 0.0
 
     n = len(y_true)
-    label_to_idx = {l: i for i, l in enumerate(labels)}
+    label_to_idx = {lbl: i for i, lbl in enumerate(labels)}
     k = len(labels)
     matrix = [[0] * k for _ in range(k)]
     for t, p in zip(y_true, y_pred):
@@ -107,7 +109,7 @@ def main() -> None:
         # Use bins: 0-2, 3-5, 6-9, 10+
         bins = [(0, 2, "0-2"), (3, 5, "3-5"), (6, 9, "6-9"), (10, 99, "10+")]
 
-        print(f"\n  Binary kappa by step position:")
+        print("\n  Binary kappa by step position:")
         print(f"  {'Bin':>6} {'N':>5} {'Kappa':>7} {'Acc':>7} {'Err true':>9} {'Err pred':>9}")
         print(f"  {'-'*6} {'-'*5} {'-'*7} {'-'*7} {'-'*9} {'-'*9}")
 
@@ -127,7 +129,7 @@ def main() -> None:
                   f"{err_true:>8.1%} {err_pred:>8.1%}")
 
         # --- By step position within trace (early/mid/late thirds) ---
-        print(f"\n  By position within trace:")
+        print("\n  By position within trace:")
         print(f"  {'Pos':>6} {'N':>5} {'Kappa':>7} {'Acc':>7}")
         print(f"  {'-'*6} {'-'*5} {'-'*7} {'-'*7}")
 
@@ -155,7 +157,7 @@ def main() -> None:
                   f"{_accuracy(pt, pp):>7.3f}")
 
         # --- HIGH-only threshold (most relevant for the study) ---
-        print(f"\n  HIGH-only threshold (TRAIL severity >= HIGH):")
+        print("\n  HIGH-only threshold (TRAIL severity >= HIGH):")
         print(f"  {'Bin':>6} {'N':>5} {'Kappa':>7}")
         print(f"  {'-'*6} {'-'*5} {'-'*7}")
 

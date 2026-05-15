@@ -27,7 +27,7 @@ COMPARISONS = {
     },
     "Nebius long (50 traces, 3800 steps, 40+ steps/trace)": {
         "MiniMax": "results/phase3-long/minimax.cache.jsonl",
-        "Haiku": "results/sensitivity-haiku-long/haiku.cache.jsonl",
+        # "Haiku": "results/sensitivity-haiku-long/haiku.cache.jsonl",  # cache not produced; long-trace cross-grader is deferred
     },
 }
 
@@ -78,7 +78,7 @@ def _analyze_group(group_name: str, grader_caches: dict[str, str]) -> None:
             results[f"{label}_with_phase"] = si.estimate
 
             # Report all coefficients
-            print(f"    Full model:")
+            print("    Full model:")
             for c in r.coefficients:
                 sig = " *" if c.ci_low > 0 or c.ci_high < 0 else ""
                 print(f"      {c.name}: {c.estimate:+.4f} "
@@ -98,7 +98,7 @@ def _analyze_group(group_name: str, grader_caches: dict[str, str]) -> None:
         diff = abs(slopes[0] - slopes[1])
         print(f"  Difference: {diff:.4f}")
         if diff < 0.005:
-            print(f"  Slopes agree within 0.005 -- conclusion is not sensitive to grader choice.")
+            print("  Slopes agree within 0.005 -- conclusion is not sensitive to grader choice.")
         else:
             print(f"  Slopes differ by {diff:.4f} -- grader choice may affect the conclusion.")
     print()

@@ -26,8 +26,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-import pandas as pd
 
 from inspect_degradation.analysis.frame import traces_to_frame
 from inspect_degradation.analysis.rates import error_rate, neutral_rate, productive_rate

@@ -10,31 +10,33 @@ Detailed results from the degradation study. For context and methodology, see [R
 
 ## Cross-dataset summary
 
-| Dataset | Model | Scaffolding | Traces | step_index | p-value | Direction |
-|---|---|---|---|---|---|---|
-| **Crossover** | **Claude 3.5 Sonnet** | **SWE-agent** | 50 | **+0.0016** | **0.024** | **Degrades** |
-| MSB | Claude 3.5 Sonnet | SWE-agent | 50 | +0.0010 | 0.119 | No effect |
-| Crossover | Claude 3.5 Sonnet | OpenHands | 50 | +0.0007 | 0.162 | No effect |
-| **MSB** | **Claude 3.5 Sonnet** | **OpenHands** | 50 | **+0.0029** | **<0.001** | **Degrades** |
-| SWE-smith | Claude 3.7 Sonnet | SWE-agent | 30 | +0.0003 | 0.554 | No effect |
-| **MSB** | **Claude 3.7 Sonnet** | **OpenHands** | 50 | **+0.0014** | **0.001** | **Degrades** |
-| **Terminus** | **GLM 4.7** | **terminus-2** | 50 | **-0.0059** | **<0.001** | **Improves** |
-| Crossover | GPT-4o | SWE-agent | 50 | +0.0003 | 0.126 | No effect |
-| **MSB** | **GPT-4o** | **SWE-agent** | 50 | **+0.0025** | **0.001** | **Degrades** |
-| OpenHands | GPT-4o | OpenHands | 50 | -0.0013 | 0.321 | No effect |
-| **MSB** | **GPT-4o** | **OpenHands**¹ | 50 | **-0.0003** | **0.020** | **Improves** |
-| Nebius | Llama 70B | SWE-agent | 30 | +0.0030 | 0.055 | No effect (borderline) |
-| **Nebius long** | **Llama all (40+ steps)** | **SWE-agent** | 50 | **+0.0007** | **<0.001** | **Degrades** |
-| OpenHands | Qwen3-Coder-480B | OpenHands | 30 | +0.0002 | 0.321 | No effect |
-| **Auto-SWE** | **Qwen3-Coder-Next (6 models)** | **Custom pipeline** | 50 | **-0.0009** | **0.034** | **Improves** |
+| Dataset | Model | Scaffolding | Traces | step_index | 95% CI | p-value | Direction |
+|---|---|---|---|---|---|---|---|
+| **Crossover** | **Claude 3.5 Sonnet** | **SWE-agent** | 50 | +0.0016 | [+0.0002, +0.0030] | 0.024 | **Degrades** |
+| MSB | Claude 3.5 Sonnet | SWE-agent | 50 | +0.0010 | [-0.0003, +0.0023] | 0.119 | No effect |
+| Crossover | Claude 3.5 Sonnet | OpenHands | 50 | +0.0007 | - | 0.162 | No effect |
+| **MSB** | **Claude 3.5 Sonnet** | **OpenHands** | 50 | **+0.0029** | **[+0.0018, +0.0041]** | **<0.001** | **Degrades** |
+| SWE-smith | Claude 3.7 Sonnet | SWE-agent | 30 | +0.0003 | [-0.0006, +0.0012] | 0.554 | No effect |
+| **MSB** | **Claude 3.7 Sonnet** | **OpenHands** | 50 | **+0.0014** | **[+0.0006, +0.0023]** | **0.001** | **Degrades** |
+| **Terminus** | **GLM 4.7** | **terminus-2** | 50 | **-0.0059** | **[-0.0087, -0.0030]** | **<0.001** | **Improves** |
+| Crossover | GPT-4o | SWE-agent | 50 | +0.0003 | - | 0.126 | No effect |
+| **MSB** | **GPT-4o** | **SWE-agent** | 50 | **+0.0025** | **[+0.0010, +0.0039]** | **0.001** | **Degrades** |
+| OpenHands | GPT-4o | OpenHands | 50 | -0.0013 | [-0.0040, +0.0013] | 0.321 | No effect |
+| **MSB** | **GPT-4o** | **OpenHands¹** | 50 | **-0.0003** | - | **0.020** | **Improves** |
+| Nebius | Llama 70B | SWE-agent | 30 | +0.0030 | [-0.0001, +0.0060] | 0.055 | No effect (borderline) |
+| **Nebius long** | **Llama (predominantly 70B)** | **SWE-agent** | 50 | **+0.0007** | **[+0.0004, +0.0010]** | **<0.001** | **Degrades** |
+| OpenHands | Qwen3-Coder-480B | OpenHands | 30 | +0.0002 | [-0.0002, +0.0005] | 0.321 | No effect |
+| **Auto-SWE** | **Qwen3-Coder-Next (6 models)** | **Custom pipeline** | 50 | **-0.0009** | **[-0.0017, -0.0001]** | **0.034** | **Improves** |
 
-All coefficients are from mixed-effects linear probability models on **uncapped** grader caches with parse-error steps excluded, random intercept for task, controlling for step phase, complexity, and outcome where available. Five of the slopes above survive Benjamini–Hochberg FDR correction across the 14-configuration family. Full reports in `results/analysis-reports/`; cap-vs-uncap comparison in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json).
+All coefficients are from mixed-effects linear probability models on **uncapped** grader caches with parse-error steps excluded, random intercept for task, controlling for step phase, complexity, and outcome where available. Six of the bolded slopes above survive Benjamini–Hochberg FDR correction across the 14-pair family in [results/compare_all_pairs_final.json](results/compare_all_pairs_final.json): five degrading (Crossover/Claude 3.5/SWE-agent, MSB/Claude 3.5/OpenHands, MSB/Claude 3.7/OpenHands, MSB/GPT-4o/SWE-agent, Nebius long) and one improving (Terminus). Auto-SWE and the floor-effect MSB/GPT-4o/OpenHands row are raw-p significant only. Full reports in `results/analysis-reports/`.
 
-¹ Not re-graded: the original MSB/GPT-4o/OpenHands run had 0% truncation, so the capped and uncapped grades are identical.
+¹ MSB/GPT-4o/OpenHands had 0% truncation under the original cap so no re-grading was needed; the row reports the original (=uncapped) regression. The 0.3% baseline error rate (4 errors across ~1500 steps) means the small negative slope is treated as a floor-effect artifact rather than a substantive improvement signal.
+
+A sub-analysis restricted to the Auto-SWE *implement-stage* steps (n=61, +0.0007/step, p=0.009, BH-FDR-rejected at 0.05) is reported in § Power analysis as evidence that the corrected pipeline detects sub-MDE slopes. It is not promoted to a primary row above to avoid double-counting - the implement-stage steps are a subset of the Auto-SWE row already shown.
 
 **Five configurations show degradation.** The pattern is concentrated in Multi-SWE-bench and long-trace data: 3 of 4 re-graded MSB configs, the long-trace follow-up, and Crossover/Claude 3.5/SWE-agent. Two configurations show improvement (Terminus GLM 4.7, Auto-SWE). Seven are null.
 
-**The degradation signal is not model-specific.** GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama (70B/8B/405B mix) all show degradation on at least one configuration. Qwen3-Coder-480B is the only model with no degradation signal across any framework tested.
+**The degradation signal is not model-specific.** GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama (Nebius long: 41 traces of 70B, 8 of 8B, 1 of 405B - predominantly 70B) all show degradation on at least one configuration. Qwen3-Coder-480B is the only model with no degradation signal across any framework tested.
 
 **Outcome-control test (2 MSB / SWE-agent configs).** Resolved status was backfilled from Multi-SWE-bench trajectory `score` fields. Adding `trace_success` to the model does not change the direction or magnitude of the step_index slope meaningfully. Outcome labels could not be obtained for the 3 OpenHands configs or Terminus (trajectory files do not include a `score` field).
 
@@ -53,7 +55,7 @@ Validation accuracy by framework:
 | OpenHands | Manual inspection | Zero known misclassifications |
 | Terminus | Uses same XML/shell pipeline as SWE-agent | Not independently validated |
 
-SWE-agent validation: 100 randomly sampled steps from 30 Nebius/Llama 70B traces (seed=42). 74 classified as act, 26 as explore. 1-2 borderline cases where the agent is reasoning about code structure with no explicit command (defaults to act). See `scripts/validate_step_phase.py` to reproduce or extend the validation.
+SWE-agent validation: 100 randomly sampled steps from 30 Nebius/Llama 70B traces (seed=42). 74 classified as act, 26 as explore. 2 borderline cases where the agent is reasoning about code structure with no explicit command (defaults to act). See `scripts/validate_step_phase.py` to reproduce or extend the validation.
 
 ---
 
@@ -105,7 +107,7 @@ Targeted run to test whether degradation appears under context-window pressure, 
 
 ¹ Pre-correction (capped) estimate.
 
-Degradation appears at +0.0007/step (p<0.001, survives BH-FDR across the 14-pair family). Over a 100-step trace this adds 7pp in expected error rate - non-negligible relative to the 26% baseline. This is the single configuration most directly testing the context-window-pressure hypothesis, and the signal is the strongest in the study.
+Degradation appears at +0.0007/step (p<0.001, survives BH-FDR across the 14-pair family). Over a 100-step trace this adds 7pp in expected error rate - non-negligible relative to the 26% baseline. This is the single configuration most directly testing the context-window-pressure hypothesis. The slope is the most statistically significant in the study, though not the largest in magnitude - MSB/Claude 3.5/OpenHands and MSB/GPT-4o/SWE-agent both show larger slopes (+0.0029 and +0.0025) on shorter traces.
 
 ![Long-trace follow-up](figures/long_trace_followup.png)
 
@@ -119,7 +121,7 @@ Error-rate ranges shift modestly under uncapped grading (baseline rose ~1–6pp 
 
 **Complexity effects reversed between models.** Llama: higher complexity → fewer errors. Claude: higher complexity → more errors (p=0.0002). One interpretation: Llama's grader labels are capturing "if the agent got it right, the step must have been easy" (post-hoc rationalization in the complexity judgment). Another: Claude actually struggles more on hard steps while Llama fails uniformly. Whether this reflects model behavior or grader calibration is unclear - disentangling them would require human complexity labels.
 
-**Errors are independent, not cascading.** Mean cascade chain length 1.06 across all datasets. Cascade chains are computed from consecutive error labels, so late-step errors the capped pipeline missed don't appear as chain continuations - the 1.06 is a lower bound, and the true cascade length under uncapped grading is likely higher.
+**Cascade chains are short under capped grading; uncapped value not yet recomputed.** Mean cascade chain length 1.06 across all datasets, computed from consecutive error labels in the original capped caches. Late-step errors that the capped pipeline silently turned into neutrals via parse-error fallback don't appear as chain continuations, so 1.06 is a lower bound on the true cascade length under uncapped grading. The recomputation under uncapped grading is one of the items deferred to follow-up work; treat the cascade-independence claim as preliminary, not load-bearing.
 
 **Autocorrelation is weak.** Lag-1 ACF 0.063; Ljung-Box rejection near nominal level. Supports the regression's independence assumption.
 
@@ -216,13 +218,15 @@ Reference fail counts: 395 (any) -> 326 (MEDIUM+) -> 148 (HIGH only), out of 954
 
 At HIGH-only, four of five graders reach kappa ~0.45-0.50 (moderate agreement). The disagreement is concentrated on LOW-impact errors -- cosmetic issues (missing closing tags, typos, formatting) that don't change tool behavior. This pattern held across all 5 model families, suggesting it reflects something general about how LLMs judge errors rather than a quirk of any particular model.
 
-**Construct mismatch: decision quality vs outcome contribution.** The 73% false-negative rate at MEDIUM+ likely overstates the grader's actual failure rate. The grader judges each step under a no-hindsight constraint -- using only prior context, without seeing future steps. TRAIL's human annotators labeled traces after the fact with full knowledge of how each step's consequences played out. An edit that compiles and looks correct at step 3 but turns out wrong when a test fails at step 60 is a *good decision* (the grader's construct) but a *bad outcome contribution* (TRAIL's construct). The grader says pass; TRAIL says fail. This is not grader error -- it is a construct mismatch.
+**Construct mismatch: decision quality vs outcome contribution.** The 73% false-negative rate at MEDIUM+ likely overstates the grader's actual failure rate. The grader judges each step under a no-hindsight constraint -- using only prior context, without seeing future steps. TRAIL annotators worked from the trace per the published methodology -- "we did not explore and verify information (web-based or otherwise) from contents external to the trace because our baseline models are not expected to do so" (Patronus AI 2025) -- but the annotation procedure asked them to read each trace as a whole before labeling individual spans, and the trace-level rubric items (instruction adherence, plan optimality, reliability) require knowing how the trace ended. The result is *de facto* hindsight at span-label time: an edit that compiles and looks correct at step 3 but turns out wrong when a test fails at step 60 is a *good decision* (the grader's construct) but a *bad outcome contribution* (the construct the trace-aware annotator effectively encodes into the span label). The grader says pass; TRAIL says fail. This is a construct mismatch driven by hindsight leakage from the trace-level annotation pass into per-span labels, not by external information access.
 
-The implication: kappa against hindsight-informed reference labels systematically underestimates grader accuracy on the construct the grader actually measures. The 73% FNR reflects the fraction of errors that are only identifiable with future context, not the fraction of detectable errors the grader misses. At HIGH-only -- where errors are severe enough to be recognizable at decision time (corrupted state, hallucinated facts, explicitly violated instructions) -- kappa reaches 0.49, consistent with moderate agreement on a genuinely measurable construct.
+The implication: kappa against trace-aware reference labels systematically underestimates grader accuracy on the construct the grader actually measures. The 73% FNR reflects the fraction of errors that are only identifiable with future context, not the fraction of detectable errors the grader misses. At HIGH-only -- where errors are severe enough to be recognizable at decision time (corrupted state, hallucinated facts, explicitly violated instructions) -- kappa reaches 0.49, consistent with moderate agreement on a genuinely measurable construct.
 
-This generalizes to any LLM-as-judge rubric with a no-hindsight constraint validated against hindsight-informed labels. The solution is not to remove the constraint (which prevents penalizing reasonable decisions with bad outcomes) but to validate against labels that reflect the same construct, or to decompose disagreement into "detectable at decision time" vs "requires future context."
+The hindsight-leakage component is directly measurable: re-grading Phase 1 with a variant prompt that exposes the full trace and final outcome at grading time, then comparing per-step verdicts to the no-hindsight Phase 1 cache, gives the blind→informed pass→fail flip rate. That experiment is registered under the analysis lock in [docs/preregistration-2026-04-23.md § D](docs/preregistration-2026-04-23.md#d-two-pass-blind-vs-hindsight-grader-on-trail) and pending. Until it runs, the size of the construct mismatch is bounded only by the kappa gap, not measured.
 
-**TRAIL's labels may themselves limit achievable kappa.** An attempt to classify MEDIUM+ false negatives by hindsight-dependence (`scripts/classify_fn_ui.py`) revealed that TRAIL's category labels are often too vague to support reliable classification even with full trace access: "Instruction Non-compliance" does not identify which instruction, and many steps are nested LLM calls rather than concrete actions. Kappa against TRAIL may be a lower bound on inter-rater agreement with any reviewer, including the TRAIL annotators themselves.
+This generalizes to any LLM-as-judge rubric with a no-hindsight constraint validated against trace-aware labels. The solution is not to remove the constraint (which prevents penalizing reasonable decisions with bad outcomes) but to validate against labels that reflect the same construct, or to decompose disagreement into "detectable at decision time" vs "requires future context."
+
+**TRAIL's labels may themselves limit achievable kappa, and the floor is unpublished.** TRAIL reports no formal inter-annotator agreement (no Cohen's κ, no Krippendorff's α); the published quality control is a 5–6% revision rate on QA review, which is a process metric, not an agreement coefficient. Without κ, the construct's irreducible noise floor is unknown -- which puts an unmeasured lower bound on any LLM grader's achievable agreement against this benchmark. Separately, an attempt to classify MEDIUM+ false negatives by hindsight-dependence (`scripts/classify_fn_ui.py`) revealed that TRAIL's category labels are often too vague to support reliable classification even with full trace access: "Instruction Non-compliance" does not identify which instruction, and many steps are nested LLM calls rather than concrete actions. The kappa numbers reported here should therefore be read as *the agreement an LLM grader achieves against a benchmark of unknown ceiling*, not as an absolute accuracy claim.
 
 ![Severity threshold](figures/severity_threshold.png)
 
@@ -242,7 +246,7 @@ v2 changed three things simultaneously (severity exception, removed conservative
 
 This has implications for the position-dependent accuracy findings. The v1 rubric's conservative bias ("default toward neutral", "tie-break downward") may be what keeps grader accuracy from degrading *faster* at later steps. Removing it (as v2 did) would likely worsen the position effect. The rubric's strictness is a feature, not a bug -- but it also means the grader systematically under-reports errors, which biases the degradation slope toward zero.
 
-**Frontier models do not improve grading** -- Kimi, Sonnet, and Gemini all underperformed MiniMax and Haiku. Self-consistency helped only at the HIGH threshold. The ensemble hypothesis (cross-family majority vote) did not beat the best single model at any threshold.
+**Frontier models did not improve grading on this subset** -- Kimi (50-trace), Sonnet (10-trace), and Gemini (full corpus) all underperformed MiniMax and Haiku. Self-consistency helped only at the HIGH threshold. The ensemble hypothesis (cross-family majority vote) did not beat the best single model at any threshold.
 
 ### Grader selection for degradation analysis
 
@@ -312,7 +316,7 @@ Three ablation analyses test robustness of the result. These use original capped
 
 **Trace length.** Splitting each configuration at the median trace length, short traces showed marginally positive slopes (Nebius: +0.014, p=0.09; Nebius long: +0.003, p<0.001) while long traces were flat (slopes <0.001, p>0.7). Originally interpreted as survivorship (short traces that fail fast have steeper error trajectories) - that interpretation likely still holds qualitatively, but "long-traces-are-flat" is directly contradicted by the uncapped Nebius-long result above.
 
-**Model size.** On the Nebius long-trace dataset (Llama 70B: 41 traces, 8B: 8 traces), neither model size showed degradation under capped grading: 70B slope +0.0001 (p=0.74), 8B slope +0.0002 (p=0.43). Error rates differed (70B: 26.6%, 8B: 32.4%) but slopes did not. Under corrected grading the pooled Nebius-long slope is +0.0007; the per-model split has not been re-estimated.
+**Model size.** On the Nebius long-trace dataset (Llama 70B: 41 traces, 8B: 8 traces; the remaining 1 trace at 405B is too small for a per-size estimate and is excluded from this split), neither model size showed degradation under capped grading: 70B slope +0.0001 (p=0.74), 8B slope +0.0002 (p=0.43). Error rates differed (70B: 26.6%, 8B: 32.4%) but slopes did not. Under corrected grading the pooled Nebius-long slope is +0.0007; the per-model split has not been re-estimated.
 
 **Within-phase step position.** Fitting on action steps only produced non-significant slopes under capped grading: Nebius +0.0017 (p=0.43), Nebius long -0.0002 (p=0.54). Under corrected grading, the MSB within-phase slopes reverse direction (see [Phase robustness](#phase-robustness-analysis) above).
 
@@ -334,7 +338,7 @@ Three ablation analyses test robustness of the result. These use original capped
 
 ## Limitations
 
-- **The rubric has not been validated by human experts.** No inter-rater reliability study has been conducted with this rubric. The construct mismatch (decision quality vs outcome contribution) means validating against TRAIL underestimates grader accuracy on the grader's own construct, but confirming this requires decomposing TRAIL's labels by whether each error was detectable without future context. TRAIL's inter-annotator agreement is unpublished, so kappa values lack an interpretive anchor.
+- **The rubric has not been validated by human experts.** No inter-rater reliability study has been conducted with this rubric. *If* the construct mismatch (decision quality vs outcome contribution) hypothesized in § Severity-threshold analysis is real, validating against TRAIL would underestimate grader accuracy on the grader's own construct - but its size is bounded only by the kappa gap until the registered hindsight-vs-blind experiment ([docs/preregistration-2026-04-23.md § D](docs/preregistration-2026-04-23.md#d-two-pass-blind-vs-hindsight-grader-on-trail)) runs. TRAIL's inter-annotator agreement is also unpublished, so kappa values lack an interpretive anchor independent of the construct question.
 - **Context management varies by scaffolding and is unrecoverable from trajectory data.** SWE-agent and OpenHands both support configurable context management (sliding windows, summarization), and the Multi-SWE-bench trajectories do not record which settings were used. If a framework silently drops context, the step_index axis no longer reflects how much context the model actually sees. Auto-SWE was verified to preserve full context within each run. Not resolvable from the data alone. A related concern: provider-side prompt-cache eviction mid-trace would silently drop recent prior context through a different mechanism than the char-budget cap, with no `.truncation.json` trace. Unaudited.
 - **Step granularity is not comparable across datasets.** OpenHands steps are multi-tool-call groups; Nebius and Auto-SWE steps are single LLM calls. A "step 10" in OpenHands and a "step 10" in Nebius measure different amounts of work, so cross-dataset claims about `step_index` robustness are comparing incomparable axes.
 - **Grader was validated uncapped but deployed capped.** MiniMax was selected on uncapped TRAIL validation (kappa 0.486 at HIGH). All Phase 3 grading ran capped at 30K chars. Selection validity does not transfer across truncation regimes - the MiniMax-vs-Haiku slope divergence originally attributed to grader conservatism is equally consistent with Haiku being more truncation-robust.

@@ -108,7 +108,7 @@ def _analyze_grader(label: str, predicted: list[GradedTrace], reference: list[Gr
         if neutral_indices:
             print(f"     neutral: mean={np.mean(neutral_indices):.1f}, median={np.median(neutral_indices):.1f}, n={len(neutral_indices)}")
         else:
-            print(f"     neutral: none assigned")
+            print("     neutral: none assigned")
         if pass_indices:
             print(f"     pass:    mean={np.mean(pass_indices):.1f}, median={np.median(pass_indices):.1f}, n={len(pass_indices)}")
         if fail_indices:

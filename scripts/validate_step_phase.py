@@ -24,7 +24,6 @@ from __future__ import annotations
 import argparse
 import json
 import random
-import sys
 from pathlib import Path
 
 from inspect_degradation.step_phase import classify_step_phase
@@ -97,7 +96,7 @@ def _export(steps: list[dict], n: int, seed: int, path: Path) -> None:
             f.write(json.dumps(record) + "\n")
 
     print(f"Exported {len(sample)} steps to {path}")
-    print(f"Add a 'human_label' field (explore/act) to each line,")
+    print("Add a 'human_label' field (explore/act) to each line,")
     print(f"then run: python scripts/validate_step_phase.py --check {path}")
 
 

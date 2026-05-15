@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+import os
 from pathlib import Path
 
 from inspect_degradation.datasets.trail import load_trail
@@ -29,7 +29,9 @@ from inspect_degradation.store import GradedTraceStore
 from inspect_degradation.validation.agreement import pair_grades
 
 STUDY_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_TRAIL_ROOT = Path(r"E:\Projects\zerg\trail-benchmark\benchmarking")
+DEFAULT_TRAIL_ROOT = Path(
+    os.environ.get("TRAIL_ROOT", "./trail-benchmark/benchmarking")
+).resolve()
 PORT = 8766
 
 

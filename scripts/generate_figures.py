@@ -1,8 +1,14 @@
 """Generate publication-quality figures for the degradation study.
 
+Uses the *uncapped* grader caches where they exist. Three configurations
+(Crossover/GPT-4o/SWE-agent, Crossover/Claude 3.5/OpenHands, MSB/GPT-4o/OpenHands)
+were not re-graded because their original runs had 0% truncation, so the
+capped and uncapped grades are identical for those — those continue to read
+from the original capped caches.
+
 Usage (from repo root):
-    python study/scripts/generate_figures.py
-    python study/scripts/generate_figures.py --output-dir study/figures
+    python scripts/generate_figures.py
+    python scripts/generate_figures.py --output-dir figures
 """
 
 from __future__ import annotations
@@ -28,21 +34,21 @@ from inspect_degradation.store import GradedTraceStore
 STUDY_ROOT = Path(__file__).resolve().parent.parent
 
 CONFIGS = {
-    "Nebius / Llama 70B": "results/phase3/minimax.cache.jsonl",
-    "SWE-smith / Claude 3.7": "results/phase3-swesmith/minimax.cache.jsonl",
-    "Nebius long": "results/phase3-long/minimax.cache.jsonl",
+    "Nebius / Llama 70B": "results/phase3-uncapped/minimax.cache.jsonl",
+    "SWE-smith / Claude 3.7": "results/phase3-swesmith-uncapped/minimax.cache.jsonl",
+    "Nebius long": "results/phase3-long-uncapped/minimax.cache.jsonl",
     "Crossover / GPT-4o / SWE-agent": "results/phase3-crossover-gpt4o-sweagent/minimax.cache.jsonl",
-    "MSB / GPT-4o / SWE-agent": "results/phase3-msb/gpt-4o--swe-agent/minimax.cache.jsonl",
-    "Crossover / Claude 3.5 / SWE-agent": "results/phase3-crossover-claude35-sweagent/minimax.cache.jsonl",
-    "MSB / Claude 3.5 / SWE-agent": "results/phase3-msb/claude-3.5-sonnet--swe-agent/minimax.cache.jsonl",
-    "OpenHands / GPT-4o": "results/phase3-openhands/minimax.cache.jsonl",
+    "MSB / GPT-4o / SWE-agent": "results/phase3-msb-uncapped/gpt-4o--swe-agent/minimax.cache.jsonl",
+    "Crossover / Claude 3.5 / SWE-agent": "results/phase3-crossover-claude35-sweagent-uncapped/minimax.cache.jsonl",
+    "MSB / Claude 3.5 / SWE-agent": "results/phase3-msb-uncapped/claude-3.5-sonnet--swe-agent/minimax.cache.jsonl",
+    "OpenHands / GPT-4o": "results/phase3-openhands-uncapped/minimax.cache.jsonl",
     "MSB / GPT-4o / OpenHands": "results/phase3-msb/gpt-4o--openhands/minimax.cache.jsonl",
     "Crossover / Claude 3.5 / OpenHands": "results/phase3-crossover-claude35-openhands/minimax.cache.jsonl",
-    "MSB / Claude 3.5 / OpenHands": "results/phase3-msb/claude-3.5-sonnet--openhands/minimax.cache.jsonl",
-    "MSB / Claude 3.7 / OpenHands": "results/phase3-msb/claude-3.7-sonnet--openhands/minimax.cache.jsonl",
-    "OpenHands / Qwen3-Coder": "results/phase3-openhands-qwen/minimax.cache.jsonl",
-    "Terminus / GLM 4.7": "results/phase3-terminus/minimax.cache.jsonl",
-    "Auto-SWE": "results/phase3-autoswe/minimax.cache.jsonl",
+    "MSB / Claude 3.5 / OpenHands": "results/phase3-msb-uncapped/claude-3.5-sonnet--openhands/minimax.cache.jsonl",
+    "MSB / Claude 3.7 / OpenHands": "results/phase3-msb-uncapped/claude-3.7-sonnet--openhands/minimax.cache.jsonl",
+    "OpenHands / Qwen3-Coder": "results/phase3-openhands-qwen-uncapped/minimax.cache.jsonl",
+    "Terminus / GLM 4.7": "results/phase3-terminus-uncapped/minimax.cache.jsonl",
+    "Auto-SWE": "results/phase3-autoswe-uncapped/minimax.cache.jsonl",
 }
 
 HERO_CONFIGS = [

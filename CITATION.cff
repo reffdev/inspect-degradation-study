@@ -1,9 +1,10 @@
 cff-version: 1.2.0
-message: "If you use this study or its data, please cite it as below."
-title: "Do AI Agents Degrade Over Long Tasks?"
-type: dataset
+message: "If you use this study, its data, or its analysis pipeline, please cite both the software (this repository) and the paper using the entries below."
+title: "inspect-degradation-study: graded traces, analyses, and paper for the within-run agent degradation study"
+type: software
 authors:
-  - name: "Alex Reff"
+  - family-names: "Reff"
+    given-names: "Alex"
 url: "https://github.com/reffdev/inspect-degradation-study"
 repository-code: "https://github.com/reffdev/inspect-degradation-study"
 license: MIT
@@ -11,5 +12,15 @@ keywords:
   - ai-agents
   - degradation
   - llm-evaluation
+  - llm-as-judge
   - inspect-ai
   - swe-bench
+  - measurement-error
+preferred-citation:
+  type: article
+  title: "Length-Dependent Accuracy and Construct Mismatch in LLM-as-Judge: Lessons from Step-Level Agent Degradation Measurement"
+  authors:
+    - family-names: "Reff"
+      given-names: "Alex"
+  year: 2026
+  url: "https://github.com/reffdev/inspect-degradation-study/blob/main/paper/paper.tex"

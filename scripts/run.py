@@ -29,7 +29,7 @@ MODE = "smoke"  # "smoke" or "full"
 
 # OpenRouter credentials. Leave as-is to read from your shell env, or
 # hardcode here (this file is gitignored).
-OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "PASTE-YOUR-API-KEY-HERE")
+OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "not-set")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Absolute path to the benchmarking/ directory of your local TRAIL clone.

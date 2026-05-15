@@ -123,7 +123,7 @@ def main() -> int:
 
     print("")
     print("=" * 60)
-    print(f"[smoke] RESULTS")
+    print("[smoke] RESULTS")
     print("=" * 60)
     print(f"[smoke] wall: {elapsed:.1f}s for {args.steps} optim steps "
           f"({elapsed/args.steps:.1f}s/step)")
@@ -147,9 +147,9 @@ def main() -> int:
     print(f"[smoke] projected 3-run overnight (N=3,5,8 × ~316 steps each): {est_overnight_hours:.1f} hours")
     if per_step > 30:
         print(f"[smoke] ABORT: step time {per_step:.0f}s is too slow. Do not kick off overnight.")
-        print(f"[smoke]         Investigate before committing: expected <30s/step on 5080.")
+        print("[smoke]         Investigate before committing: expected <30s/step on 5080.")
         return 2
-    print(f"[smoke] step time is acceptable (<30s). Safe to kick off overnight.")
+    print("[smoke] step time is acceptable (<30s). Safe to kick off overnight.")
     return 0
 
 

@@ -1,0 +1,570 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage{xcolor}
+
+\title{Length-Dependent Accuracy and Construct Mismatch in LLM-as-Judge:\\Lessons from Step-Level Agent Degradation Measurement}
+\author{Alex Reff\\Independent Researcher\\\texttt{alex.reff@gmail.com}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A measurement pipeline grades each step of a coding-agent trace with an LLM judge, validates the judge against human labels, decomposes the degradation slope from confounds, and ships an optional SIMEX label-noise correction calibrated to the grader's TRAIL-validated flip rate.
+Across 14 BH-corrected configurations (one further configuration was not re-graded; 8 models, 4 scaffoldings, ${\sim}$24,000 graded steps total, full grader context, parse-error steps excluded), 5 show statistically significant degradation (all 5 surviving Benjamini--Hochberg correction at $\alpha=0.05$), 2 show improvement (1 surviving BH), and 7 are null.
+The dominant confound is phase composition---agents shift from exploration to action over a task, and that shift mimics degradation---but it attenuates rather than eliminates the signal on configurations with larger samples.
+A long-trace follow-up (50 traces, 40+ steps, three Llama variants), designed specifically to test context-window pressure, shows $+0.0007$ errors/step ($p < 0.001$, BH-significant).
+Two findings about the grading instrument itself generalize beyond this study.
+First, grader $\kappa$ against human labels decays with cumulative input length rather than step position: it peaks at 10--50K characters and falls past 50K for both MiniMax and Haiku, consistent with general long-context accuracy degradation.
+Second, the 73\% false-negative rate at MEDIUM+ severity is consistent with a construct mismatch---the grader evaluates decision quality at the time of action while human reference labels effectively encode outcome contribution---rather than grader failure; $\kappa$ reaches 0.49 at the HIGH-only threshold where errors are recognizable without future context. The size of the mismatch is bounded by the kappa gap; a registered hindsight-vs-blind two-pass experiment is pending direct measurement.
+The pipeline and all graded traces are released as open-source tools.
+\end{abstract}
+
+\section{Introduction}
+
+LLM-as-judge is increasingly used to evaluate agent behavior at the step level---grading each action in a trace for correctness, relevance, or progress.
+But if the judge's accuracy varies systematically with position in the trace, any temporal analysis built on those judgments inherits a bias the researcher cannot see.
+This paper documents such an effect and traces its consequences through a study of step-level degradation in coding agents.
+
+Agent benchmarks---SWE-bench \citep{jimenez2024swebench}, GAIA \citep{mialon2023gaia}, WebArena \citep{zhou2024webarena}---measure final outcomes: did the agent solve the task?
+They do not measure what happens \emph{during} a task.
+An agent that makes one early mistake and flawlessly executes the wrong plan for 20 steps looks identical to one that independently fails every step.
+These are different failure modes requiring different interventions, and no existing tooling distinguishes them.
+
+The assumption that agents degrade over long tasks appears widely in framework documentation and engineering practice.
+Teams build context management into agent scaffolding---sliding windows that drop early messages, summarization chains that compress history, periodic agent restarts that discard state---partly justified by the assumption that long contexts degrade accuracy.
+Long-context degradation is well-documented for \emph{retrieval} tasks \citep{liu2024lost}, but retrieving a planted fact from a long prompt is a different capability than generating a correct next action given a history of prior actions.
+There does not appear to be published work measuring within-run step-level error trajectories for coding agents specifically.
+
+This paper presents a study that measured step-level degradation across 15 agent configurations, identified the dominant confound (phase composition), and characterized two properties of the grading instrument---length-dependent accuracy and a construct mismatch with human reference labels---that affect any temporal analysis built on LLM-as-judge outputs.
+The contributions are:
+
+\begin{enumerate}
+    \item A 14-configuration degradation study (${\sim}$24,000 graded steps): of the 5 with statistically significant degradation, all 5 survive BH-FDR correction at $\alpha=0.05$; 2 configurations show improvement (1 surviving BH); 7 are null. Degradation is not model-specific---it appears across GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama (predominantly 70B in the long-trace sample). Phase composition is a real confound that attenuates slopes by roughly half but does not eliminate them on configurations with larger samples or longer traces.
+    \item Evidence that grader $\kappa$ decays with \emph{input length} rather than step position: stratifying TRAIL validation by cumulative prior-step character count, $\kappa$ peaks at 10--50K chars and decays past 50K for both MiniMax and Haiku, consistent with general long-context accuracy degradation rather than intrinsic position bias.
+    \item A construct mismatch between no-hindsight grading and hindsight-informed reference labels: $\kappa$ against TRAIL's expert annotations systematically underestimates grader accuracy on the decision-quality construct the grader actually measures. The 73\% false-negative rate at MEDIUM+ likely reflects errors identifiable only with future context.
+    \item A reusable measurement pipeline (\texttt{inspect-degradation}) integrating step-level LLM grading, grader validation against human labels, optional SIMEX label-noise correction, and confound decomposition, released as an open-source Inspect AI extension.
+\end{enumerate}
+
+\section{Related Work}
+
+\textbf{Agent benchmarks and reliability.}
+SWE-bench \citep{jimenez2024swebench}, GAIA \citep{mialon2023gaia}, and WebArena \citep{zhou2024webarena} evaluate task-level success.
+The HAL leaderboard \citep{kapoor2026hal} provides standardized multi-benchmark evaluation with cost tracking, and its Reliability Dashboard measures consistency, robustness, and predictability across runs---but not within-run temporal dynamics.
+The CLEAR framework \citep{mehta2025clear} proposes multi-dimensional enterprise evaluation across cost, latency, efficacy, assurance, and reliability.
+None of these measure within-run temporal dynamics.
+TRAIL \citep{patronus2024trail} provides expert-annotated step-level labels for agent traces; this work extends TRAIL's annotations to temporal trajectory analysis by fitting mixed-effects models to step-level grades across the trace timeline.
+Anthropic's ``Demystifying Evals'' \citep{anthropic2025evals} discusses per-step evaluation methodology; this work provides a reusable implementation and reports the degradation measurements that methodology enables.
+
+\textbf{LLM-as-judge.}
+MT-Bench and Chatbot Arena \citep{zheng2023judging} evaluate single responses or conversations; AlpacaEval \citep{alpacaeval} evaluates instruction-following quality.
+This work extends the LLM-as-judge paradigm to multi-step agent traces where each grading call receives a growing context of prior steps, and adds measurement-error correction (SIMEX) to account for the noise the judge introduces.
+Kapoor et al.\ \citep{kapoor2024scalable} found that cheap-judge confidence is unreliable as an escalation gate in cascade architectures, motivating this work's use of ensemble voting \citep{wang2022selfconsistency} over cascade designs and the exclusion of verbalized confidence scores from the rubric.
+
+\textbf{Long-context retrieval.}
+Liu et al.\ \citep{liu2024lost} showed that LLMs struggle to use information placed in the middle of long contexts (``Lost in the Middle'').
+Needle-in-a-haystack benchmarks measure fact retrieval as context grows.
+These are real effects, but they test retrieval from context, not action generation given context.
+
+\textbf{Measurement error correction.}
+SIMEX \citep{cook1994simulation} corrects regression coefficients for covariate measurement error.
+It is adapted here for binary label noise in LLM-graded outcomes, following the framework of Carroll et al.\ \citep{carroll2006measurement}.
+
+\section{Method}
+
+\subsection{Step-Level Grading}
+
+Each step of an agent trace is graded by an LLM along five dimensions using a structured rubric:
+
+\begin{itemize}
+    \item \textbf{Validity} (fail / neutral / pass): Does the step advance the task? ``Pass'' requires positive, pointable evidence of progress---not merely the absence of visible error.
+    \item \textbf{Complexity} (low / medium / high): How clear was the correct next move? A confound control variable.
+    \item \textbf{Dependency} (independent / dependent / n/a): Is a failure caused by a prior failure? Enables cascade-chain analysis.
+    \item \textbf{Severity} (low / medium / high): Recovery cost of a failing step.
+    \item \textbf{Looping} (boolean): Is this step a repeat of a prior action? Mechanical, occurrence-based.
+\end{itemize}
+
+All dimensions are closed-set categoricals.
+No confidence scores are elicited---verbalized LLM self-confidence is unreliable \citep{xiong2023can}.
+Uncertainty is measured empirically via validation, not self-reported.
+
+The grader prompt includes all prior steps in the trace as context.
+The pipeline supports a configurable \texttt{prior\_context\_char\_budget} that truncates prior-step content.
+An initial run applied a 30,000-character cap for cost control; this was subsequently identified as introducing position-correlated bias (truncation rate scaled from 0\% at step 0 to 88\% at step 25), and all 14 affected configurations were re-graded with full context.
+All results in this paper use uncapped grading with parse-error steps excluded.
+See Appendix~\ref{app:correction} for the correction details.
+Parse failures (truncated JSON, rate-limit exhaustion, provider errors) fall back to \texttt{Validity.neutral} in the library; these steps are excluded from all analyses reported here.
+
+\subsection{Step-Phase Classification}
+
+A deterministic classifier labels each step as \emph{exploration} (reads, searches, navigation) or \emph{action} (edits, test runs, submissions) from the agent's command text.
+Framework-specific detection layers handle SWE-agent XML blocks, OpenHands bracket commands with subcommand parsing, terminus XML, Auto-SWE structured tool calls, and a shell-command fallback.
+Validation: 100\% accuracy on Auto-SWE (verified against ground-truth tool names), 98--100\% on SWE-agent (100-step human-reviewed sample).
+
+\subsection{Statistical Analysis}
+
+The step-level grades feed a mixed-effects linear probability model:
+\[
+\text{is\_error}_{ij} = \beta_0 + \beta_1 \cdot \text{step\_index}_{ij} + \beta_2 \cdot \text{phase}_{ij} + \beta_3 \cdot \text{complexity}_{ij} + \beta_4 \cdot \text{outcome}_i + u_i + \varepsilon_{ij}
+\]
+where $i$ indexes traces (with random intercept $u_i$ grouped by task), $j$ indexes steps, and $\beta_1$ is the degradation coefficient of interest.
+The model adapts to available covariates: outcome is dropped when unavailable, model identity is added when multiple models are present.
+Confidence intervals on rates, slopes, and chain-length statistics use trace-level bootstrap resampling (whole traces resampled, not steps) to correctly account for within-trace correlation. Mixed-effects regression coefficients use the asymptotic Wald CI from the fitted random-intercept model, where the random intercept absorbs the trace-level correlation directly.
+Benjamini--Hochberg FDR correction is applied across the configuration family.
+
+\subsection{Grader Selection and Validation}
+\label{sec:method:validation}
+
+Seven grader configurations were evaluated against TRAIL's 148 expert-annotated traces (954 step pairs).
+Cohen's $\kappa$ was computed at three severity thresholds: any error, MEDIUM+, and HIGH-only.
+Four of five graders reached $\kappa \approx 0.45$--$0.50$ at the HIGH-only threshold (moderate agreement), with disagreement concentrating on LOW-impact errors.
+Three additional findings emerged from validation:
+
+\emph{Ensembles do not improve agreement.}
+Neither 3-sample self-consistency nor cross-family majority voting (Haiku + MiniMax + Gemini) beat the best single model at any threshold.
+
+\emph{Frontier models do not improve grading.}
+Sonnet 4.6, Kimi K2.5, and Gemini 2.5 Flash Lite all underperformed MiniMax and Haiku.
+
+\emph{Rubric iteration has negative returns.}
+Adding a cosmetic-error exception collapsed binary $\kappa$ from 0.202 to 0.029.
+The exception language gave the grader an escape hatch it used far beyond its intended scope.
+
+MiniMax M2.5 (\$0.40/M input tokens) was selected as the primary grader: $\kappa = 0.49$ at HIGH-only, matching Haiku-level accuracy at lower cost.
+The SIMEX flip probability is derived from the HIGH-only confusion matrix (flip rate = 0.12), which matches the grader's effective operating threshold. The correction is available in the released pipeline; it is not applied to the headline coefficients in this paper because at this flip rate the implied slope attenuation is small relative to the cross-configuration variance, and the registered Lock D follow-up will produce the corpus needed to choose between flip-rate calibrations.
+
+\section{Experimental Setup}
+
+Fifteen configurations spanning 8 distinct models and 4 scaffoldings were tested, totaling ${\sim}$24,000 graded steps (Table~\ref{tab:configs}).
+Most use SWE-bench Python bug-fix instances; one (Auto-SWE) uses a custom multi-agent pipeline on production tasks.
+Several models appear in multiple configurations: ``Crossover'' runs test a model on a scaffolding different from its original dataset, while ``MSB'' runs use Multi-SWE-bench trajectories that provide the same model--scaffolding pair on a different task sample.
+This design separates model effects from scaffolding effects and tests replication across task distributions.
+
+All coefficients in Table~\ref{tab:configs} are from \textbf{uncapped} grader caches with parse-error steps excluded, following the methodology correction described in Appendix~\ref{app:correction}.
+One configuration (MSB / GPT-4o / OpenHands) had 0\% truncation under the original cap and was not re-graded.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Cross-dataset summary (post-correction). All coefficients from mixed-effects LPM on uncapped grader caches, parse-error steps excluded, random intercept for task, controlling for step phase, complexity, and outcome where available. Five slopes survive BH-FDR correction across the 14-pair family.}
+\label{tab:configs}
+\begin{tabular}{llrrl}
+\toprule
+Model & Scaffolding & Traces & $\beta_1$ (step\_index) & Direction \\
+\midrule
+Claude 3.5 Sonnet & SWE-agent (Crossover) & 50 & $+0.0016^{*}$ & Degrades \\
+Claude 3.5 Sonnet & SWE-agent (MSB) & 50 & $+0.0010$ & No effect \\
+Claude 3.5 Sonnet & OpenHands (Crossover) & 50 & $+0.0007$ & No effect \\
+Claude 3.5 Sonnet & OpenHands (MSB) & 50 & $+0.0029^{***}$ & Degrades \\
+Claude 3.7 Sonnet & SWE-agent & 30 & $+0.0003$ & No effect \\
+Claude 3.7 Sonnet & OpenHands (MSB) & 50 & $+0.0014^{**}$ & Degrades \\
+GLM 4.7 & terminus-2 & 50 & $-0.0059^{***}$ & Improves \\
+GPT-4o & SWE-agent (Crossover) & 50 & $+0.0003$ & No effect \\
+GPT-4o & SWE-agent (MSB) & 50 & $+0.0025^{**}$ & Degrades \\
+GPT-4o & OpenHands & 50 & $-0.0013$ & No effect \\
+GPT-4o & OpenHands (MSB)$^\dagger$ & 50 & $-0.0003^{*}$ & Improves \\
+Llama 70B & SWE-agent & 30 & $+0.0030$ & No effect \\
+Llama (all, 40+ steps) & SWE-agent & 50 & $+0.0007^{***}$ & Degrades \\
+Qwen3-Coder-480B & OpenHands & 30 & $+0.0002$ & No effect \\
+Qwen3-Coder-Next & Custom pipeline & 50 & $-0.0009^{*}$ & Improves \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize $^{*}p < 0.05$, $^{**}p < 0.01$, $^{***}p < 0.001$. $^\dagger$Not re-graded (0\% truncation).}
+\end{tabular}
+\end{table}
+
+\section{Results}
+
+\subsection{Phase-Composition Confound}
+
+The first dataset analyzed (Nebius / Llama 70B, 30 traces, 632 steps) showed apparent degradation.
+Each successive control attenuated the signal.
+Under the corrected methodology (uncapped grading, parse-error steps excluded), the phase-controlled slope sits at $+0.0030$/step ($p = 0.055$, 95\% CI $[-0.00007, +0.00603]$)---borderline null:
+
+\begin{table}[h]
+\centering
+\caption{Progressive confound control on Nebius / Llama 70B (uncapped).}
+\label{tab:dismantling}
+\begin{tabular}{lrrl}
+\toprule
+Controls & $\beta_1$ & $p$-value & What it revealed \\
+\midrule
+Raw per-trace OLS & ${\sim}+0.020$ & varies & --- \\
++ Mixed-effects & positive & --- & Task variance, outcome bias \\
++ Step-phase covariate & $+0.0030$ & $0.055$ & Phase attenuates but does not eliminate \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Agents explore early (reads, searches---low error rate) and act late (edits, test runs---high error rate).
+Step phase is the dominant predictor of error rate: action steps have 11--30 percentage points higher error rates than exploration steps ($p < 0.0001$ in every configuration), an effect larger than any model or task covariate.
+Controlling for phase approximately halves the raw slope.
+But it does not drive it to zero---on configurations with larger samples or longer traces (the long-trace follow-up, four re-graded MSB configurations), the phase-controlled slope remains significantly positive.
+
+\subsection{Cross-Dataset Summary}
+
+Five of 14 configurations show statistically significant degradation after phase control (Table~\ref{tab:configs}).
+The pattern is concentrated in Multi-SWE-bench and long-trace data: 3 of 4 MSB configurations, the long-trace follow-up, and Crossover/Claude 3.5/SWE-agent.
+Two configurations show improvement (Terminus/GLM 4.7, Auto-SWE/Qwen3-Coder-Next).
+Seven are null.
+
+Degradation is not model-specific: GPT-4o, Claude 3.5 Sonnet, Claude 3.7 Sonnet, and Llama (predominantly 70B; the Nebius long sample is 41 traces of 70B, 8 of 8B, 1 of 405B) all show degradation on at least one configuration.
+Qwen3-Coder-480B is the only model with no degradation signal across any framework tested.
+Three configurations (OpenHands/GPT-4o, OpenHands/Qwen3-Coder, SWE-smith/Claude 3.7) are consistently null.
+
+\subsection{Long-Trace Follow-Up}
+
+A targeted follow-up tested whether degradation appears under maximum context-window pressure, using 50 traces with 40+ steps each (3,800 steps) across three Llama variants (70B, 8B, 405B).
+Result: $\beta_1 = +0.0007$ ($p < 0.001$, survives BH-FDR).
+Over a 100-step trace this adds 7 percentage points in expected error rate---non-negligible relative to the 26\% baseline.
+This is the single configuration most directly testing the context-window-pressure hypothesis, and the signal is the strongest in the study.
+
+\subsection{Grader Sensitivity}
+
+The same 30 Nebius traces were re-graded with Claude Haiku 4.5 to test whether the degradation slope is sensitive to grader choice:
+
+\begin{table}[h]
+\centering
+\caption{Grader sensitivity test on Nebius / Llama 70B.}
+\label{tab:sensitivity}
+\begin{tabular}{lrr}
+\toprule
+Grader & $\beta_1$ (with phase) & $p$-value \\
+\midrule
+MiniMax & $+0.0030$ & $0.055$ \\
+Haiku & $+0.0117$ & $< 0.001$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both graders trend positive.
+Haiku finds significant degradation; MiniMax is borderline null (CI crosses zero by 0.00007).
+The ${\sim}4\times$ magnitude gap is real---the two models calibrate the ``fail'' boundary differently---but the direction of effect is consistent.
+A second grader producing a divergent slope is a cheap diagnostic for grader-specific bias (under \$1 to re-grade 632 steps with Haiku); here the divergence is in magnitude rather than direction, suggesting both graders are measuring the same underlying signal at different sensitivities.
+
+\subsection{Severity-Threshold Calibration}
+
+$\kappa$ increases monotonically with severity threshold across all five grader configurations tested (Table~\ref{tab:severity}).
+
+\begin{table}[h]
+\centering
+\caption{$\kappa$ by severity threshold.}
+\label{tab:severity}
+\begin{tabular}{lrrrrr}
+\toprule
+Threshold & Haiku & MiniMax & MiniMax SC3 & Trio & Gemini \\
+\midrule
+Any error & 0.221 & 0.202 & 0.212 & 0.215 & 0.061 \\
+MEDIUM+ & 0.278 & 0.251 & 0.259 & 0.266 & 0.065 \\
+HIGH only & \textbf{0.450} & \textbf{0.486} & \textbf{0.503} & \textbf{0.474} & 0.105 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At MEDIUM+, the false-negative rate is 73\% overall and 91\% at later steps.
+The grader effectively detects HIGH-severity errors only, regardless of rubric language (Figure~\ref{fig:severity}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/severity_threshold.png}
+\caption{Cohen's $\kappa$ by severity threshold across five grader configurations. Agreement increases monotonically with threshold strictness, reaching moderate levels ($\kappa \approx 0.45$--$0.50$) only at HIGH-only. The pattern is consistent across model families.}
+\label{fig:severity}
+\end{figure}
+
+\subsection{Construct Mismatch: Decision Quality vs.\ Outcome Contribution}
+\label{sec:construct}
+
+The 73\% false-negative rate at MEDIUM+ conflates two constructs.
+The grader operates under a no-hindsight constraint: it judges each step using only prior context, without seeing future steps.
+TRAIL's human annotators labeled traces after the fact, with full knowledge of consequences.
+
+An edit that compiles and looks correct at step 3 but turns out to be wrong when a test fails at step 60 is a \emph{good decision} (the grader's construct) but a \emph{bad outcome contribution} (TRAIL's construct).
+This is not grader error---it is a construct mismatch between decision-quality evaluation and outcome-contribution evaluation.
+
+$\kappa$ against hindsight-informed reference labels systematically underestimates grader accuracy on the construct the grader is actually measuring.
+At the HIGH-only threshold---where errors are severe enough to be recognizable at decision time (corrupted state, hallucinated facts, explicitly violated instructions)---$\kappa$ reaches 0.49, consistent with moderate agreement on a genuinely measurable construct.
+
+This distinction generalizes: any LLM-as-judge rubric with a no-hindsight constraint, validated against hindsight-informed labels, will show artificially low agreement.
+TRAIL's category labels (e.g., ``Instruction Non-compliance'') are often too underspecified to support formal classification of false negatives by hindsight-dependence, and $\kappa$ against TRAIL may represent a lower bound on inter-rater agreement with any reviewer, including the TRAIL annotators themselves.
+
+\subsection{Length-Dependent Grader Accuracy}
+
+Binary $\kappa$ against TRAIL drops from 0.33 (steps 0--2) to 0.03 (steps 6+).
+The original framing attributed this to ``position-dependent grader conservatism.''
+Stratifying the same data by cumulative prior-step character count reveals a different mechanism---$\kappa$ decays with input length:
+
+\begin{table}[h]
+\centering
+\caption{$\kappa$ by prior-step character count (MiniMax, $n=954$).}
+\label{tab:length_kappa}
+\begin{tabular}{lrr}
+\toprule
+Prior-step length & $n$ & $\kappa$ \\
+\midrule
+$<$10K & 344 & $+0.147$ \\
+10--50K & 361 & $\mathbf{+0.226}$ \\
+50--200K & 238 & $+0.094$ \\
+$>$200K & 11 & $+0.029$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Haiku shows the same pattern ($\kappa$: $+0.275$ at 10--50K $\to$ $+0.059$ at 50--200K $\to$ $-0.375$ at $>$200K), consistent with long-context accuracy decay as a general LLM property.
+
+Position and length are heavily confounded in TRAIL: 339/438 steps at position 0--2 have $<$10K prior chars; 154/175 steps at position 10+ have 50--200K.
+The diagonal corners of the joint (position $\times$ length) table are effectively empty, so the two cannot be cleanly disentangled at this sample size.
+But the length mechanism explains the observed $\kappa$ curve without requiring intrinsic position bias.
+
+\subsection{Power Analysis}
+
+Monte Carlo simulation (80 iterations per cell, flip probability 0.12) on the original capped data suggested the study could detect slopes of ${\sim}0.01$/step at 80\% power for typical corpus sizes (30--50 traces, 15--25 steps).
+Under the corrected methodology, several configurations produced statistically significant slopes well below this floor: $+0.0007$ (phase3-long, $p < 0.001$), $+0.0014$ (MSB/Claude 3.7/OpenHands, $p = 0.001$), $+0.0007$ (phase3-autoswe-implement, $p = 0.009$).
+The original MDE was conservative---the study's effective sensitivity is higher than the power table implied, likely because removing parse-error fallbacks reduced measurement noise.
+
+\subsection{Improvement Signals}
+
+Under capped grading, 6 of 15 configurations showed significant improvement.
+Under uncapped grading, 4 of those 6 retracted (three MSB configurations flipped to degradation; one to null).
+Two improvement signals survive the correction: Terminus/GLM 4.7 ($-0.0059$, $p < 0.001$, BH-significant in both regimes) and Auto-SWE/Qwen3-Coder-Next ($-0.0009$, $p = 0.034$, raw-$p$ only).
+Neither can be outcome-controlled---Terminus has \texttt{success=None}, and Auto-SWE has a process-completion proxy but not ground-truth resolution---so the improvement is indistinguishable from survivorship selection with the currently available data.
+
+\section{Practical Guidance}
+
+\textbf{Provide the grader full context, or instrument the truncation.}
+If capping is required for cost, the cap should be enforced uniformly across positions (e.g., a rolling window that truncates head content rather than tail) and truncation exposure should be modeled as a covariate in downstream regressions.
+Position-stratifying accuracy without stratifying by truncation exposure produces misleading conclusions (Appendix~\ref{app:correction}).
+
+\textbf{Handle parse-error steps explicitly.}
+Grader libraries that fall back to a default label on parse failure introduce position-correlated bias when the failure rate varies with input length.
+Analyses should drop parse-error steps by default and treat their inclusion as an explicit decision.
+
+\textbf{Use a second grader as a diagnostic.}
+Running a second grader on the same traces is a cheap diagnostic for grader-specific bias (under \$1 to re-grade 632 steps with Haiku), as long as both graders see matched context.
+
+\textbf{Apply multiple-comparisons correction.}
+Fourteen configuration-level regressions in the BH-FDR family at raw $\alpha = 0.05$ produce ${\sim}0.7$ false positives by chance.
+This paper applies BH-FDR correction across the configuration family.
+
+\textbf{Stratify grader validation by input length.}
+The length-dependent $\kappa$ decay documented in Table~\ref{tab:length_kappa} means that any LLM-as-judge validation should stratify by input length, not just step position.
+
+\section{Limitations}
+
+\begin{itemize}
+    \item \textbf{Measurement instrument quality.} The primary grader achieves $\kappa = 0.49$ at HIGH-only---moderate agreement on errors detectable at decision time. The 73\% FNR at MEDIUM+ likely reflects hindsight-dependent labels in TRAIL rather than grader failures (Section~\ref{sec:construct}), but this cannot be confirmed without decomposing TRAIL's labels by hindsight-dependence. TRAIL's inter-annotator agreement is unpublished, so $\kappa$ values lack an interpretive ceiling. The rubric has not been validated by human experts independent of the TRAIL labels.
+    \item \textbf{Context management unknown.} SWE-agent and OpenHands have configurable context management, and the trajectory data does not record which settings were used. If a framework silently drops context, step\_index no longer reflects context length.
+    \item \textbf{Step granularity is not comparable across datasets.} OpenHands steps are multi-tool-call groups; Nebius and Auto-SWE steps are single LLM calls. Cross-dataset claims about \texttt{step\_index} robustness are comparing incomparable axes.
+    \item \textbf{Narrow task distribution.} Mostly SWE-bench Python bug fixes. 30--50 traces per configuration.
+    \item \textbf{Methodological correction.} An initial run used a 30K-character context cap that introduced position-correlated bias; all results reported here use uncapped grading (Appendix~\ref{app:correction}). Some subsidiary analyses (cascade chain length, autocorrelation, phase-stratified regressions) have not been re-estimated against the uncapped data.
+\end{itemize}
+
+\section{Conclusion}
+
+Naive step-level regressions on agent traces produce convincing degradation artifacts.
+The dominant confound is phase composition: agents shift from exploration to action over a task, and action steps have higher error rates.
+But phase composition attenuates rather than eliminates the degradation signal: 5 of 14 configurations show significant degradation after phase control, including the long-trace follow-up ($+0.0007$/step, $p < 0.001$, BH-significant) designed specifically to test context-window pressure.
+
+Two findings about the grading instrument generalize beyond this study.
+First, grader $\kappa$ decays with input length rather than step position---peaking at 10--50K characters and falling past 50K---which means any temporal analysis using LLM judges on traces with growing context inherits a length-correlated accuracy gradient.
+Second, the 73\% false-negative rate at MEDIUM+ severity reflects a construct mismatch between decision-quality evaluation (the grader's construct) and outcome-contribution evaluation (TRAIL's construct), not grader failure.
+At the HIGH-only threshold, where errors are recognizable without future context, $\kappa$ reaches 0.49.
+This distinction applies to any LLM-as-judge rubric with a no-hindsight constraint validated against hindsight-informed labels.
+
+\textbf{Implications.}
+For teams building agent evaluation systems: LLM-as-judge pipelines applied to multi-step traces should provide the grader full context (or instrument any truncation as a downstream covariate), exclude parse-error steps by default, stratify grader validation by input length, and apply multiple-comparisons correction across configuration families.
+For teams building context management into agent scaffolding: the evidence that agents degrade over long tasks is not zero---but 7 of 14 configurations are null, and where present the degradation magnitude is typically 0.001--0.003 errors/step.
+Context-management decisions should be evaluated on both cost/latency benefits and on whether the downstream evaluation can distinguish real temporal signals from measurement artifacts.
+
+The measurement pipeline (\texttt{inspect-degradation}) and all graded traces are available at \url{https://github.com/reffdev/inspect-degradation} and \url{https://github.com/reffdev/inspect-degradation-study}.
+
+\begin{ack}
+This work was conducted independently without institutional affiliation or external funding. All compute costs were self-funded. The author thanks the teams behind TRAIL, SWE-bench, Multi-SWE-bench, and the Nebius trajectory release for making their data publicly available.
+\end{ack}
+
+\appendix
+
+\section{Grader Rubric (v1)}
+\label{app:rubric}
+
+The complete system prompt and user template used for all grading runs are reproduced below.
+The rubric is stored as YAML in the \texttt{inspect-degradation} package and loaded at runtime; the version field enables correlation of cached grades with the rubric that produced them.
+
+\subsection*{System Prompt}
+
+\begin{quote}
+\small
+\begin{verbatim}
+You are a step-level evaluator for AI agent traces. You grade ONE
+step - the CURRENT step - against the original task goal, using
+the prior steps as context. Your output is one JSON object,
+nothing else.
+
+## The rule that matters most
+
+The hardest failure mode of this rubric is over-crediting a stuck
+agent. "pass" does NOT mean "I see no problem". It means:
+
+    "I can complete this sentence with a concrete noun phrase:
+     'This step advanced the task by producing ________.'  "
+
+If the best you can say is "the agent thought about the problem"
+or "stated its plan" or "made a tool call" without naming the
+concrete fact, decision, or artifact that came out of it - that
+is NOT a pass. It is "neutral".
+
+Default toward "neutral" whenever you would otherwise reach for
+"pass" on autopilot. The rubric is deliberately biased this way,
+because under-crediting is recoverable and over-crediting is not.
+
+## Fields
+
+validity - does this step visibly advance the task?
+  - "fail"    : you can point to a specific thing that is wrong.
+  - "neutral" : not wrong, but you cannot point to concrete
+                progress. Default for any step where you would
+                reach for "pass" on autopilot.
+  - "pass"    : visible, pointable progress.
+
+complexity - how clear was the correct next move BEFORE this step?
+  - "low" / "medium" / "high"
+
+dependency - only meaningful when validity=="fail".
+  - "independent" / "dependent" / "n/a"
+
+severity - only meaningful when validity=="fail".
+  Anchored to recovery cost: "low" / "medium" / "high"
+
+is_looping - is this step at least the SECOND occurrence of a
+  substantially identical action within the prior steps?
+  - true / false
+
+## Output
+
+Return exactly one JSON object with these keys:
+    validity, complexity, dependency, severity, is_looping
+\end{verbatim}
+\end{quote}
+
+\noindent
+The full rubric includes additional detail on cross-step signals (repetition, self-contradiction, fabricated verification, hedging loops, phantom progress), hard rules (no hindsight, judge the step not the agent, tie-break downward), concrete categories for each validity level, and a pre-response checklist in the user template.
+The complete YAML is available in the repository at \texttt{src/inspect\_degradation/prompts/step\_grader\_v1.yaml}.
+
+\section{Methodology Correction: Context-Cap Removal}
+\label{app:correction}
+
+An initial run of the grading pipeline applied \texttt{prior\_context\_char\_budget=30000} to every grader call for cost control.
+Truncation rate was position-correlated: 0\% at step 0, scaling to 88\% at step 25 in the worst configuration, with four configurations exceeding 60\% average truncation.
+Truncated completions produced parse errors that the grader library converted to \texttt{Validity.neutral} fallbacks, concentrating neutral labels at later positions and suppressing late-step error detection.
+
+All 14 affected configurations were re-graded with \texttt{prior\_context\_char\_budget=None} and re-analyzed with parse-error steps excluded.
+Six configurations changed direction of effect or significance under the correction:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Effect of removing the 30K context cap.}
+\label{tab:correction}
+\begin{tabular}{lll}
+\toprule
+Configuration & Before correction & After correction \\
+\midrule
+Long-trace (Llama, 40+ steps) & No effect, $+0.0001$ $p{=}0.38$ & Degrades, $+0.0007$ $p{<}0.001$ \\
+MSB / GPT-4o / SWE-agent & Improves, $p{<}0.0001$ & Degrades, $+0.0025$ $p{=}0.001$ \\
+MSB / Claude 3.5 / OpenHands & Improves, $p{<}0.0001$ & Degrades, $+0.0029$ $p{<}0.001$ \\
+MSB / Claude 3.7 / OpenHands & Improves, $p{=}0.007$ & Degrades, $+0.0014$ $p{=}0.001$ \\
+MSB / Claude 3.5 / SWE-agent & Improves, $p{<}0.0001$ & No effect, $+0.0010$ $p{=}0.12$ \\
+Auto-SWE / Qwen3-Coder-Next & No effect, $p{=}0.11$ & Improves, $-0.0009$ $p{=}0.034$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three configurations were null under both regimes; two retained their original sign and significance.
+All results in the main text use the corrected (uncapped) data.
+Full cap-vs-uncap comparison data is available at \texttt{results/compare\_all\_pairs\_final.json} in the study repository.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem[Anthropic(2025)]{anthropic2025evals}
+Anthropic.
+\newblock Demystifying evals for AI agents, 2025.
+\newblock URL: \url{https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents}.
+
+\bibitem[Carroll et~al.(2006)]{carroll2006measurement}
+R.~J. Carroll, D.~Ruppert, L.~A. Stefanski, and C.~M. Crainiceanu.
+\newblock \emph{Measurement Error in Nonlinear Models: A Modern Perspective}.
+\newblock Chapman and Hall/CRC, 2nd edition, 2006.
+
+\bibitem[Cook and Stefanski(1994)]{cook1994simulation}
+J.~R. Cook and L.~A. Stefanski.
+\newblock Simulation-extrapolation estimation in parametric measurement error models.
+\newblock \emph{Journal of the American Statistical Association}, 89(428):1314--1328, 1994.
+
+\bibitem[Jimenez et~al.(2024)]{jimenez2024swebench}
+C.~E. Jimenez, J.~Yang, A.~Wettig, S.~Yao, K.~Pei, O.~Press, and K.~Narasimhan.
+\newblock {SWE}-bench: Can language models resolve real-world {GitHub} issues?
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem[Kapoor et~al.(2024)]{kapoor2024scalable}
+A.~Kapoor, N.~Raman, Y.~Peng, and S.~Narayanan.
+\newblock On scalable oversight with weak {LLMs} judging strong models.
+\newblock \emph{arXiv preprint arXiv:2407.04622}, 2024.
+
+\bibitem[Kapoor et~al.(2026)]{kapoor2026hal}
+S.~Kapoor et~al.
+\newblock {HAL}: Holistic Agent Leaderboard --- the missing infrastructure for AI agent evaluation.
+\newblock In \emph{ICLR}, 2026.
+\newblock arXiv:2510.11977.
+
+\bibitem[Li et~al.(2024)]{alpacaeval}
+X.~Li, T.~Zhang, Y.~Dubois, R.~Taori, I.~Gulrajani, C.~Guestrin, P.~Liang, and T.~B. Hashimoto.
+\newblock {AlpacaEval}: An automatic evaluator for instruction-following language models, 2024.
+\newblock URL: \url{https://github.com/tatsu-lab/alpaca_eval}.
+
+\bibitem[Liu et~al.(2024)]{liu2024lost}
+N.~F. Liu, K.~Lin, J.~Hewitt, A.~Paranjape, M.~Bevilacqua, F.~Petroni, and P.~Liang.
+\newblock Lost in the middle: How language models use long contexts.
+\newblock \emph{TACL}, 2024.
+
+\bibitem[Mehta et~al.(2025)]{mehta2025clear}
+S.~Mehta et~al.
+\newblock Beyond accuracy: a multi-dimensional framework for evaluating enterprise agentic AI systems ({CLEAR}).
+\newblock arXiv:2511.14136, 2025.
+
+\bibitem[Mialon et~al.(2023)]{mialon2023gaia}
+G.~Mialon et~al.
+\newblock {GAIA}: A benchmark for general {AI} assistants.
+\newblock \emph{arXiv preprint arXiv:2311.12983}, 2023.
+
+\bibitem[Patronus AI(2024)]{patronus2024trail}
+Patronus~AI.
+\newblock {TRAIL}: Trace reasoning and agentic issue localization, 2024.
+\newblock URL: \url{https://github.com/patronus-ai/trail-benchmark}.
+
+\bibitem[Wang et~al.(2023)]{wang2022selfconsistency}
+X.~Wang, J.~Wei, D.~Schuurmans, Q.~Le, E.~Chi, S.~Narang, A.~Chowdhery, and D.~Zhou.
+\newblock Self-consistency improves chain of thought reasoning in language models.
+\newblock In \emph{ICLR}, 2023.
+
+\bibitem[Xiong et~al.(2023)]{xiong2023can}
+K.~Xiong, X.~Ding, Y.~Cao, T.~Liu, and B.~Qin.
+\newblock Can {LLMs} express their uncertainty? An empirical evaluation of confidence elicitation in {LLMs}.
+\newblock \emph{arXiv preprint arXiv:2306.13063}, 2023.
+
+\bibitem[Zheng et~al.(2023)]{zheng2023judging}
+L.~Zheng, W.-L. Chiang, Y.~Sheng, S.~Zhuang, Z.~Wu, Y.~Zhuang, Z.~Lin, Z.~Li, D.~Li, E.~P. Xing, H.~Zhang, J.~E. Gonzalez, and I.~Stoica.
+\newblock Judging {LLM}-as-a-judge with {MT-Bench} and {Chatbot Arena}.
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem[Zhou et~al.(2024)]{zhou2024webarena}
+S.~Zhou, F.~F. Xu, H.~Zhu, X.~Zhou, R.~Lo, A.~Sridhar, X.~Cheng, T.~Ou, Y.~Bisk, D.~Fried, U.~Alon, and G.~Neubig.
+\newblock {WebArena}: A realistic web environment for building autonomous agents.
+\newblock In \emph{ICLR}, 2024.
+
+\end{thebibliography}
+
+\end{document}

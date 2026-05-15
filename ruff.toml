@@ -1,0 +1,20 @@
+# Ruff configuration for the study repo.
+#
+# Style targets are looser than for the companion library: scripts/
+# contains analysis pipelines, not user-facing API code, and a few
+# patterns that ruff flags by default are idiomatic in this kind of
+# research code.
+
+line-length = 100
+target-version = "py310"
+
+[lint.per-file-ignores]
+# Analysis scripts:
+#   E402: many scripts insert sys.path before importing repo-relative
+#         modules; that pattern is intentional and the alternative
+#         (an installed package) is overkill here.
+#   E741: stats code uses single-letter variables (l for label,
+#         e for early, d for delta) following the math notation in
+#         the surrounding analysis. The vars are local to short
+#         blocks and not part of any public API.
+"scripts/**" = ["E402", "E741"]

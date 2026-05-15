@@ -21,16 +21,16 @@ print(f"\n=== Models ({len(models)} distinct) ===")
 for model, count in models.most_common():
     print(f"  {model}: {count}")
 
-print(f"\n=== Steps per trace ===")
+print("\n=== Steps per trace ===")
 import numpy as np
 arr = np.array(step_counts)
 print(f"  mean={arr.mean():.1f}, median={np.median(arr):.0f}, min={arr.min()}, max={arr.max()}")
 
-print(f"\n=== Exit statuses ===")
+print("\n=== Exit statuses ===")
 for status, count in exit_statuses.most_common():
     print(f"  {status}: {count}")
 
-print(f"\n=== Sample trajectory step (first 500 chars) ===")
+print("\n=== Sample trajectory step (first 500 chars) ===")
 if traj_sample:
     for j, step in enumerate(traj_sample):
         print(f"\n--- step {j} type={type(step).__name__} ---")
